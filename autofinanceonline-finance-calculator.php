@@ -665,6 +665,12 @@ class AFO_Calculator
 				<!-- Inner card: white background by default -->
 				<div class="afo-results-card">
 
+					<!-- ── Loading overlay ───────────────────────────────────── -->
+					<div class="afo-loading-overlay" id="afo-loading-overlay" aria-hidden="true">
+						<div class="afo-spinner"></div>
+						<span class="afo-loading-label">Calculating&hellip;</span>
+					</div>
+
 					<!-- Hero: circle + key figures -->
 					<div class="afo-hero-row">
 						<div class="afo-monthly-circle">
@@ -699,8 +705,6 @@ class AFO_Calculator
 					<button class="afo-btn" id="afo-quote-btn" type="button">
 						<?php echo esc_html($btn_text); ?>
 					</button>
-
-
 
 					<!-- Representative Example table -->
 					<div class="afo-rep-example">

@@ -25,15 +25,35 @@ function initializeAfoCalculator() {
         return;
     }
 
-    const price        = parseFloat(afoConfig.price);
+    const price = parseFloat(afoConfig.price);
     const depositSlider = document.getElementById('afo-deposit');
-    const borrowSlider  = document.getElementById('afo-borrow');
-    const termSlider    = document.getElementById('afo-term');
+    const borrowSlider = document.getElementById('afo-borrow');
+    const termSlider = document.getElementById('afo-term');
 
     // Graceful exit if shortcode markup is absent from the current DOM
     if (!depositSlider || !borrowSlider || !termSlider) return;
 
     let debounceTimer;
+
+    // ─── Loading overlay helpers ───────────────────────────────────────────────
+
+    /**
+     * Shows the loading overlay on the results card.
+     * @return {void}
+     */
+    function showLoading() {
+        const overlay = document.getElementById('afo-loading-overlay');
+        if (overlay) overlay.classList.add('is-visible');
+    }
+
+    /**
+     * Hides the loading overlay on the results card.
+     * @return {void}
+     */
+    function hideLoading() {
+        const overlay = document.getElementById('afo-loading-overlay');
+        if (overlay) overlay.classList.remove('is-visible');
+    }
 
     // ─── Bubble helpers ────────────────────────────────────────────────────────
 
@@ -56,11 +76,11 @@ function initializeAfoCalculator() {
 
         // Thumb radius ~11 px (24 px diameter / 2 + 1 px visual fudge)
         const thumbRadius = 11;
-        const trackWidth  = slider.offsetWidth;
-        const offset      = thumbRadius + pct * (trackWidth - thumbRadius * 2);
+        const trackWidth = slider.offsetWidth;
+        const offset = thumbRadius + pct * (trackWidth - thumbRadius * 2);
 
-        bubble.style.left    = offset + 'px';
-        bubble.textContent   = formatFn(val);
+        bubble.style.left = offset + 'px';
+        bubble.textContent = formatFn(val);
     }
 
     /**
@@ -87,8 +107,8 @@ function initializeAfoCalculator() {
 
     // Cache bubble elements
     const bubbleDeposit = document.getElementById('afo-bubble-deposit');
-    const bubbleBorrow  = document.getElementById('afo-bubble-borrow');
-    const bubbleTerm    = document.getElementById('afo-bubble-term');
+    const bubbleBorrow = document.getElementById('afo-bubble-borrow');
+    const bubbleTerm = document.getElementById('afo-bubble-term');
 
     // ─── Arrow step buttons ────────────────────────────────────────────────────
 
@@ -99,11 +119,11 @@ function initializeAfoCalculator() {
     document.querySelectorAll('.afo-arrow-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const targetId = this.dataset.target;
-            const dir      = parseInt(this.dataset.dir, 10);
-            const slider   = document.getElementById(targetId);
+            const dir = parseInt(this.dataset.dir, 10);
+            const slider = document.getElementById(targetId);
             if (!slider) return;
 
-            const step   = parseFloat(slider.step) || 1;
+            const step = parseFloat(slider.step) || 1;
             const newVal = Math.min(
                 Math.max(parseFloat(slider.value) + dir * step, parseFloat(slider.min)),
                 parseFloat(slider.max)
@@ -132,15 +152,15 @@ function initializeAfoCalculator() {
         }
 
         const currentBorrow = parseFloat(borrowSlider.value);
-        const exactDeposit  = price - currentBorrow;
-        const termYears     = parseFloat(termSlider.value);
-        const termMonths    = Math.round(termYears * 12);
+        const exactDeposit = price - currentBorrow;
+        const termYears = parseFloat(termSlider.value);
+        const termMonths = Math.round(termYears * 12);
 
         // ── Price header display ──────────────────────────────────────────────
         const displayDeposit = document.getElementById('afo-display-deposit');
-        const displayBorrow  = document.getElementById('afo-display-borrow');
+        const displayBorrow = document.getElementById('afo-display-borrow');
         if (displayDeposit) displayDeposit.innerText = fmtGBP(exactDeposit);
-        if (displayBorrow)  displayBorrow.innerText  = fmtGBP(currentBorrow);
+        if (displayBorrow) displayBorrow.innerText = fmtGBP(currentBorrow);
 
         // ── Term display ──────────────────────────────────────────────────────
         const displayTerm = document.getElementById('afo-display-term');
@@ -155,8 +175,8 @@ function initializeAfoCalculator() {
 
         // ── Reposition all bubbles ────────────────────────────────────────────
         updateBubble(depositSlider, bubbleDeposit, fmtGBP);
-        updateBubble(borrowSlider,  bubbleBorrow,  fmtGBP);
-        updateBubble(termSlider,    bubbleTerm,    fmtYears);
+        updateBubble(borrowSlider, bubbleBorrow, fmtGBP);
+        updateBubble(termSlider, bubbleTerm, fmtYears);
 
         triggerApiCall(exactDeposit, termYears);
     }
@@ -165,13 +185,17 @@ function initializeAfoCalculator() {
 
     /**
      * Queues an API request with a 500 ms debounce to prevent excessive calls
-     * during rapid slider movement.
+     * during rapid slider movement. Shows the loading overlay immediately on
+     * each interaction so the user gets instant feedback.
      *
      * @param {number} exactDeposit Verified deposit amount.
      * @param {number} termYears    Repayment term in years.
      * @return {void}
      */
     function triggerApiCall(exactDeposit, termYears) {
+        // Show the overlay as soon as the user starts interacting
+        showLoading();
+
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function () {
             fetchFinanceData(exactDeposit, termYears);
@@ -191,30 +215,32 @@ function initializeAfoCalculator() {
     async function fetchFinanceData(deposit, termYears) {
         if (!afoConfig.apiKey) {
             console.error('AFO Calculator: API Key is missing from configuration.');
+            hideLoading();
             return;
         }
 
-        const baseUrl    = afoConfig.apiUrl;
+        const baseUrl = afoConfig.apiUrl;
         const termMonths = Math.round(parseFloat(termYears) * 12);
 
         const params = new URLSearchParams({
             vehicle_price: price,
-            deposit:       parseFloat(deposit),
-            term_length:   termMonths
+            deposit: parseFloat(deposit),
+            term_length: termMonths
         });
 
         try {
             const response = await fetch(baseUrl + '?' + params.toString(), {
-                method:  'GET',
+                method: 'GET',
                 headers: {
-                    'X-API-Key':     afoConfig.apiKey,
-                    'Content-Type':  'application/json'
+                    'X-API-Key': afoConfig.apiKey,
+                    'Content-Type': 'application/json'
                 }
             });
 
             if (response.status === 429) {
                 const retryAfter = response.headers.get('Retry-After') || 60;
                 console.warn('AFO API Rate limit exceeded. Halting for ' + retryAfter + 's.');
+                // Keep the overlay visible during the retry wait, then retry
                 setTimeout(function () { fetchFinanceData(deposit, termYears); }, retryAfter * 1000);
                 return;
             }
@@ -231,8 +257,8 @@ function initializeAfoCalculator() {
             const result = await response.json();
 
             if (result.success && result.data && result.data.finance_options && result.data.finance_options.length > 0) {
-                const options    = result.data.finance_options;
-                let   bestOption = options.find(function (opt) {
+                const options = result.data.finance_options;
+                let bestOption = options.find(function (opt) {
                     return opt.type && opt.type.toLowerCase() === 'excellent';
                 });
 
@@ -261,8 +287,8 @@ function initializeAfoCalculator() {
                     if (quoteBtn) {
                         quoteBtn.onclick = function () {
                             try {
-                                const targetUrl    = new URL(result.data.referrer.link);
-                                const currentBorrow  = document.getElementById('afo-borrow').value;
+                                const targetUrl = new URL(result.data.referrer.link);
+                                const currentBorrow = document.getElementById('afo-borrow').value;
                                 const currentDeposit = document.getElementById('afo-deposit').value;
 
                                 targetUrl.searchParams.set('default-amount', currentBorrow);
@@ -281,20 +307,23 @@ function initializeAfoCalculator() {
 
         } catch (error) {
             console.error('AFO Finance API Transport Error:', error);
+        } finally {
+            // Always dismiss the overlay once the request settles (success or error)
+            hideLoading();
         }
     }
 
     // ─── Event listeners ───────────────────────────────────────────────────────
 
     depositSlider.addEventListener('input', syncSliders);
-    borrowSlider.addEventListener('input',  syncSliders);
-    termSlider.addEventListener('input',    syncSliders);
+    borrowSlider.addEventListener('input', syncSliders);
+    termSlider.addEventListener('input', syncSliders);
 
     // Recalculate bubble positions after a resize (offsetWidth changes)
     window.addEventListener('resize', function () {
         updateBubble(depositSlider, bubbleDeposit, fmtGBP);
-        updateBubble(borrowSlider,  bubbleBorrow,  fmtGBP);
-        updateBubble(termSlider,    bubbleTerm,    fmtYears);
+        updateBubble(borrowSlider, bubbleBorrow, fmtGBP);
+        updateBubble(termSlider, bubbleTerm, fmtYears);
     });
 
     // Bootstrap: fire once with no triggering element to initialise all displays

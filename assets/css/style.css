@@ -245,6 +245,55 @@ input[type="range"]::-moz-range-thumb {
     border-radius: 8px;
     padding: 1.25rem 1.25rem 0.25rem;
     margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ─────────────────────────────────────────────
+   LOADING OVERLAY
+───────────────────────────────────────────── */
+.afo-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.afo-loading-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Spinner ring */
+.afo-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid rgba(0, 0, 0, 0.08);
+    border-top-color: var(--afo-primary, #cc2020);
+    animation: afo-spin 0.7s linear infinite;
+}
+
+@keyframes afo-spin {
+    to { transform: rotate(360deg); }
+}
+
+.afo-loading-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--afo-primary, #cc2020);
+    letter-spacing: 0.3px;
 }
 
 .afo-results-card .afo-hero-info {
