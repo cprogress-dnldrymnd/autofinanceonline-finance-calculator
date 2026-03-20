@@ -13,7 +13,7 @@ let afoInitAttempts = 0;
  * @return {void}
  */
 function initializeAfoCalculator() {
-    
+
     // Polling mechanism: Wait for afoConfig if async/defer optimizations altered script execution order
     if (typeof afoConfig === 'undefined') {
         afoInitAttempts++;
@@ -36,12 +36,12 @@ function initializeAfoCalculator() {
 
     let debounceTimer;
 
-   /**
-     * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
-     * Includes null-safety checks for programmatic bootstrapping.
-     * * @param {Event|Object} e The input event object triggered by slider manipulation.
-     * @return {void}
-     */
+    /**
+      * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
+      * Includes null-safety checks for programmatic bootstrapping.
+      * * @param {Event|Object} e The input event object triggered by slider manipulation.
+      * @return {void}
+      */
     function syncSliders(e) {
         // Safely evaluate event properties to prevent null reference errors during init
         if (e && e.target && e.target.id === 'afo-deposit') {
@@ -51,8 +51,8 @@ function initializeAfoCalculator() {
         }
 
         // Update Text Displays with localized currency formatting
-        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         document.getElementById('afo-display-term').innerText = `${termSlider.value} months`;
         document.getElementById('afo-res-months').innerText = termSlider.value;
 
@@ -72,12 +72,12 @@ function initializeAfoCalculator() {
     }
 
     /**
-     * Fetches quote details from the Auto Finance Online API.
-     * Implements GET parameter construction and HTTP 429 rate limit handling.
-     * * @param {number|string} deposit The current deposit amount.
-     * @param {number|string} term The repayment term in months.
-     * @return {Promise<void>}
-     */
+        * Fetches quote details from the Auto Finance Online API.
+        * Includes intelligent fallback parsing for dynamic API response structures.
+        * * @param {number|string} deposit The current deposit amount.
+        * @param {number|string} term The repayment term in months.
+        * @return {Promise<void>}
+        */
     async function fetchFinanceData(deposit, term) {
         if (!afoConfig.apiKey) {
             console.error('AFO Calculator: API Key is missing from configuration.');
@@ -112,27 +112,47 @@ function initializeAfoCalculator() {
                 try {
                     const errorData = await response.json();
                     if (errorData.message) errorMsg = errorData.message;
-                } catch (e) {}
+                } catch (e) { }
                 throw new Error(`AFO API Rejected Request: ${errorMsg}`);
             }
 
             const result = await response.json();
 
-            if (result.success && result.data && result.data.finance_options) {
-                const bestOption = result.data.finance_options.find(opt => opt.type === 'excellent');
+            // Check if the response payload has the expected array
+            if (result.success && result.data && result.data.finance_options && result.data.finance_options.length > 0) {
 
+                const options = result.data.finance_options;
+
+                // Attempt to find the best tier, accounting for potential capitalization variations
+                let bestOption = options.find(opt => opt.type && opt.type.toLowerCase() === 'excellent');
+
+                // SMART FALLBACK: If 'excellent' isn't explicitly defined, grab the first available option
+                if (!bestOption) {
+                    bestOption = options[0];
+                }
+
+                // Push the calculated values into the DOM
                 if (bestOption) {
-                    document.getElementById('afo-res-rate').innerText = `${bestOption.apr}% APR`;
-                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    // Safety check to ensure the APR exists before printing
+                    const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
+                    document.getElementById('afo-res-rate').innerText = `${aprValue}% APR`;
+
+                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
 
+                // Inject the generated tracking link into the CTA button
                 if (result.data.referrer && result.data.referrer.link) {
-                    quoteBtn.onclick = () => {
-                        window.open(result.data.referrer.link, '_blank');
-                    };
+                    const quoteBtn = document.getElementById('afo-quote-btn');
+                    if (quoteBtn) {
+                        quoteBtn.onclick = () => {
+                            window.open(result.data.referrer.link, '_blank');
+                        };
+                    }
                 }
+            } else {
+                console.warn('AFO Calculator: API returned success, but finance_options array was missing or empty.', result);
             }
         } catch (error) {
             console.error('AFO Finance API Transport Error:', error);
