@@ -85,6 +85,12 @@ class AFO_Calculator
 		register_setting('afo_style_settings', 'afo_btn_bg_color');
 		register_setting('afo_style_settings', 'afo_btn_text_color');
 
+		// ── Styles — Inner Card ───────────────────────────────────────────────
+		register_setting('afo_style_settings', 'afo_card_bg_color');
+		register_setting('afo_style_settings', 'afo_card_text_color');
+		register_setting('afo_style_settings', 'afo_card_muted_color');
+		register_setting('afo_style_settings', 'afo_card_circle_bg_color');
+
 		// ── Styles — Representative Example ──────────────────────────────────
 		register_setting('afo_style_settings', 'afo_rep_text_color');
 		register_setting('afo_style_settings', 'afo_rep_muted_color');
@@ -217,6 +223,17 @@ class AFO_Calculator
 						$colour_row('Monthly Circle Background',   'afo_circle_bg_color',     '#7a0000', 'The dark circle behind the monthly payment amount.');
 						$colour_row('Quote Button Background',     'afo_btn_bg_color',        '#ffffff');
 						$colour_row('Quote Button Text',           'afo_btn_text_color',      '#cc2020');
+						?>
+					</table>
+
+					<!-- ── INNER CARD ─────────────────────────────────────────── -->
+					<h2 style="margin-top:2rem;">Inner Card <small>(hero stats area)</small></h2>
+					<table class="form-table">
+						<?php
+						$colour_row('Card Background',             'afo_card_bg_color',       '#ffffff');
+						$colour_row('Card Primary Text',           'afo_card_text_color',     '#111111', 'Monthly amount, stat values.');
+						$colour_row('Card Muted / Label Text',    'afo_card_muted_color',    '#555555', 'Stat labels, sub-labels, info paragraph.');
+						$colour_row('Card Circle Background',     'afo_card_circle_bg_color','#1a1a1a', 'The circle behind the monthly payment amount when using the card.');
 						?>
 					</table>
 
@@ -461,6 +478,11 @@ class AFO_Calculator
 			'--afo-circle-bg'      => get_option('afo_circle_bg_color',     '#7a0000'),
 			'--afo-btn-bg'         => get_option('afo_btn_bg_color',        '#ffffff'),
 			'--afo-btn-text'       => get_option('afo_btn_text_color',      '#cc2020'),
+			// Inner card
+			'--afo-card-bg'        => get_option('afo_card_bg_color',       '#ffffff'),
+			'--afo-card-text'      => get_option('afo_card_text_color',     '#111111'),
+			'--afo-card-muted'     => get_option('afo_card_muted_color',    '#555555'),
+			'--afo-card-circle-bg' => get_option('afo_card_circle_bg_color','#1a1a1a'),
 			// Rep example
 			'--afo-rep-text'       => get_option('afo_rep_text_color',      '#ffffff'),
 			'--afo-rep-muted'      => get_option('afo_rep_muted_color',     '#ffcccc'),
@@ -640,6 +662,9 @@ class AFO_Calculator
 
 				<h3 class="afo-results-heading"><?php echo esc_html($right_heading); ?></h3>
 
+				<!-- Inner card: white background by default -->
+				<div class="afo-results-card">
+
 				<!-- Hero: circle + key figures -->
 				<div class="afo-hero-row">
 					<div class="afo-monthly-circle">
@@ -674,6 +699,8 @@ class AFO_Calculator
 				<button class="afo-btn" id="afo-quote-btn" type="button">
 					<?php echo esc_html($btn_text); ?>
 				</button>
+
+				</div><!-- /afo-results-card -->
 
 				<!-- Representative Example table -->
 				<div class="afo-rep-example">
