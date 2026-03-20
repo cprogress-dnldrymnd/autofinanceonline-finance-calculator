@@ -9,13 +9,6 @@
     margin: 0 auto;
 }
 
-@media (min-width: 1025px) {
-    .afo-calculator-container > div {
-        width: 50%;
-        flex: 0 0 50%;
-    }
-}
-
 .afo-results {
     background: var(--afo-bg);
     padding: 2rem;
@@ -76,4 +69,17 @@ input[type="range"] {
     color: #666;
     text-align: center;
     margin-top: 1rem;
+}
+
+@media (min-width: 1025px) {
+    .afo-calculator-container > div {
+        width: 50%;
+        flex: 0 0 50%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .afo-calculator-container {
+        flex-direction: column;
+    }
 }
