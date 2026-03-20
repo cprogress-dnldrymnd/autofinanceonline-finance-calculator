@@ -352,8 +352,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Quote button */
-.afo-btn {
-    background: var(--afo-btn-bg, #ffffff);
+.afo-btn.afo-btn.afo-btn.afo-btn.afo-btn.afo-btn {
+    background: var(--afo-btn-bg);
     color: var(--afo-btn-text, #cc2020);
     border: none;
     padding: 0.9rem 2rem;
@@ -381,7 +381,7 @@ input[type="range"]::-moz-range-thumb {
 ───────────────────────────────────────────── */
 .afo-rep-example {
     background: transparent;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--afo-rep-text);
     padding: 1rem 0 0.75rem;
     margin-top: auto;
 }
