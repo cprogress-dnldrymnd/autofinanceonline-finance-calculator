@@ -229,5 +229,6 @@ class AFO_Calculator
 <?php
 		return ob_get_clean();
 	}
+}
 
 new AFO_Calculator();
