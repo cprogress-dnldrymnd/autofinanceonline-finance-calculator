@@ -144,8 +144,8 @@ class AFO_Calculator
 	}
 
 	/**
-	 * Renders the shortcode output and injects post-specific meta data into the script localize payload.
-	 * Includes robust fallbacks for WooCommerce compatibility and unsaved options.
+	 * Renders the shortcode output and injects configuration data via HTML5 data attributes.
+	 * Bypassing wp_localize_script prevents race conditions in deferred JS environments.
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string HTML output for the calculator.
@@ -153,35 +153,31 @@ class AFO_Calculator
 	public function render_shortcode($atts)
 	{
 		$post_id = get_the_ID();
+		
+		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta($post_id, 'price', true);
-
-		// Fallback to standard WooCommerce meta key if 'price' is empty
 		if (empty($raw_price)) {
 			$raw_price = get_post_meta($post_id, '_price', true);
 		}
 
-		// Strip out commas, currency symbols, and spaces before conversion
+		// Sanitize price strictly to float format
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
 		$price = ! empty($clean_price) ? floatval($clean_price) : 10000;
 
-		// Extract settings with robust fallbacks to prevent undefined JS variables
+		// Extract settings with robust fallbacks
 		$api_key = get_option('afo_api_key');
 		$api_key = ! empty($api_key) ? $api_key : '091ecf3e-ad04-47d9-94b1-043539780f16';
 
 		$api_url = get_option('afo_api_url');
 		$api_url = ! empty($api_url) ? $api_url : 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate';
 
-		// Localize script with exact configurations.
-		wp_localize_script('afo-script', 'afoConfig', [
-			'apiKey'  => $api_key,
-			'apiUrl'  => $api_url,
-			'price'   => $price,
-			'nonce'   => wp_create_nonce('afo_calc_nonce')
-		]);
-
 		ob_start();
 	?>
-		<div class="afo-calculator-container">
+		<div class="afo-calculator-container" 
+			 data-api-key="<?php echo esc_attr($api_key); ?>"
+			 data-api-url="<?php echo esc_url($api_url); ?>"
+			 data-price="<?php echo esc_attr($price); ?>">
+			
 			<div class="afo-controls">
 				<div class="afo-price-header">
 					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
