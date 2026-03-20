@@ -29,11 +29,11 @@ function initializeAfoCalculator() {
     function updateTooltipPosition(slider, tooltipId) {
         const tooltip = document.getElementById(tooltipId);
         if (!tooltip) return;
-        
+
         const min = parseFloat(slider.min) || 0;
         const max = parseFloat(slider.max) || 100;
         const val = parseFloat(slider.value);
-        
+
         const percentage = ((val - min) / (max - min)) * 100;
         tooltip.style.left = `calc(${percentage}%)`;
     }
@@ -65,14 +65,14 @@ function initializeAfoCalculator() {
             const targetId = e.target.getAttribute('data-target');
             const direction = parseInt(e.target.getAttribute('data-dir'));
             const slider = document.getElementById(targetId);
-            
+
             if (slider) {
                 const step = parseFloat(slider.step) || 1;
                 let newValue = parseFloat(slider.value) + (step * direction);
-                
+
                 if (newValue < parseFloat(slider.min)) newValue = slider.min;
                 if (newValue > parseFloat(slider.max)) newValue = slider.max;
-                
+
                 slider.value = newValue;
                 syncSliders({ target: slider });
             }
@@ -83,7 +83,7 @@ function initializeAfoCalculator() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             fetchFinanceData(exactDeposit, termYears);
-        }, 500); 
+        }, 500);
     }
 
     async function fetchFinanceData(deposit, termYears) {
@@ -122,12 +122,22 @@ function initializeAfoCalculator() {
 
                 if (bestOption) {
                     const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
-                    const monthly = parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                    const total = parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
+                    // Format numeric values for the UI
+                    const monthly = parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const total = parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const interest = parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    // Update the dynamic results card elements
                     document.getElementById('afo-res-monthly').innerText = `£${monthly}`;
                     document.getElementById('afo-res-total').innerText = `£${total}`;
                     document.getElementById('afo-res-rate').innerText = `${aprValue}%`;
+
+                    // Specifically target the Total Cost of Credit ID
+                    const creditEl = document.getElementById('afo-res-credit');
+                    if (creditEl) {
+                        creditEl.innerText = `£${interest}`;
+                    }
                 }
 
                 if (result.data.referrer && result.data.referrer.link) {
