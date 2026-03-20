@@ -148,7 +148,7 @@ class AFO_Calculator
 						</tr>
 					</table>
 
-				// ── STYLES ────────────────────────────────────────────────────
+			
 				<?php } elseif ($active_tab === 'styles') {
 					settings_fields('afo_style_settings');
 				?>
@@ -177,7 +177,6 @@ class AFO_Calculator
 						</tr>
 					</table>
 
-				// ── LABELS ────────────────────────────────────────────────────
 				<?php } elseif ($active_tab === 'labels') {
 					settings_fields('afo_label_settings');
 				?>
@@ -272,7 +271,6 @@ class AFO_Calculator
 						</tr>
 					</table>
 
-				// ── REP EXAMPLE ───────────────────────────────────────────────
 				<?php } elseif ($active_tab === 'rep') {
 					settings_fields('afo_rep_settings');
 				?>
