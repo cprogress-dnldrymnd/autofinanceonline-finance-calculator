@@ -35,12 +35,12 @@ function initializeAfoCalculator() {
 
     let debounceTimer;
 
-   /**
-     * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
-     * Includes null-safety checks for programmatic bootstrapping.
-     * * @param {Event|Object} e The input event object triggered by slider manipulation.
-     * @return {void}
-     */
+    /**
+      * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
+      * Includes null-safety checks for programmatic bootstrapping.
+      * * @param {Event|Object} e The input event object triggered by slider manipulation.
+      * @return {void}
+      */
     function syncSliders(e) {
         // Safely evaluate event properties to prevent null reference errors during init
         if (e && e.target && e.target.id === 'afo-deposit') {
@@ -50,8 +50,8 @@ function initializeAfoCalculator() {
         }
 
         // Update Text Displays with localized currency formatting
-        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         document.getElementById('afo-display-term').innerText = `${termSlider.value} months`;
         document.getElementById('afo-res-months').innerText = termSlider.value;
 
@@ -77,7 +77,7 @@ function initializeAfoCalculator() {
      * @param {number|string} term The repayment term in months.
      * @return {Promise<void>}
      */
-    async function fetchFinanceData(deposit, term) {
+    function fetchFinanceData(deposit, term) {
         if (!afoConfig.apiKey) {
             console.error('AFO Calculator: API Key is missing from configuration.');
             return;
@@ -111,7 +111,7 @@ function initializeAfoCalculator() {
                 try {
                     const errorData = await response.json();
                     if (errorData.message) errorMsg = errorData.message;
-                } catch (e) {}
+                } catch (e) { }
                 throw new Error(`AFO API Rejected Request: ${errorMsg}`);
             }
 
@@ -122,9 +122,9 @@ function initializeAfoCalculator() {
 
                 if (bestOption) {
                     document.getElementById('afo-res-rate').innerText = `${bestOption.apr}% APR`;
-                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
 
                 if (result.data.referrer && result.data.referrer.link) {
