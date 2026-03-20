@@ -28,10 +28,10 @@ class AFO_Calculator
 	 */
 	public function __construct()
 	{
+		add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 		add_action('admin_menu', [$this, 'add_settings_page']);
 		add_action('admin_init', [$this, 'register_settings']);
 		add_shortcode('finance_calculator', [$this, 'render_shortcode']);
-		add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 	}
 
 	/**
@@ -132,9 +132,9 @@ class AFO_Calculator
 		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '1.0.0', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
-		$raw_price = get_post_meta($post_id, 'price', true);
+		$raw_price = get_post_meta(get_the_ID(), 'price', true);
 		if (empty($raw_price)) {
-			$raw_price = get_post_meta($post_id, '_price', true);
+			$raw_price = get_post_meta(get_the_ID(), '_price', true);
 		}
 
 		// Sanitize price strictly to float format
