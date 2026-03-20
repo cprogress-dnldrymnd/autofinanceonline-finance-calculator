@@ -51,7 +51,7 @@
 
 .afo-controls-heading {
     font-size: 1.9rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--afo-left-heading, #111111);
     margin: 0 0 1rem;
     letter-spacing: -0.5px;
@@ -233,7 +233,7 @@ input[type="range"]::-moz-range-thumb {
 
 .afo-results-heading {
     font-size: 1.25rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--afo-right-text, #ffffff);
     margin: 0 0 1.5rem;
     letter-spacing: -0.3px;
@@ -289,7 +289,7 @@ input[type="range"]::-moz-range-thumb {
 
 .afo-monthly-amount {
     font-size: 1.65rem;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1;
     color: var(--afo-right-text, #ffffff);
     letter-spacing: -1px;
@@ -329,7 +329,7 @@ input[type="range"]::-moz-range-thumb {
 .afo-hero-stat .stat-value {
     display: block;
     font-size: 1.2rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--afo-right-text, #ffffff);
     letter-spacing: -0.5px;
 }
@@ -380,7 +380,7 @@ input[type="range"]::-moz-range-thumb {
 
 .afo-rep-heading {
     font-size: 0.82rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--afo-rep-text, #ffffff);
     margin-bottom: 0.7rem;
     text-transform: uppercase;
