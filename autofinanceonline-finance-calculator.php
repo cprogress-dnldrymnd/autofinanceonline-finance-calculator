@@ -639,7 +639,7 @@ class AFO_Calculator
 							<div class="afo-bubble" id="afo-bubble-term">5 years</div>
 							<input type="range" id="afo-term"
 								min="2"
-								max="15"
+								max="10"
 								value="5"
 								step="0.5">
 						</div>
