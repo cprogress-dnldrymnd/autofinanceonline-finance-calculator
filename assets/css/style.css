@@ -373,8 +373,7 @@ input[type="range"]::-moz-range-thumb {
 ───────────────────────────────────────────── */
 .afo-rep-example {
     background: transparent;
-    border-top: 1px solid var(--afo-rep-text);
-    padding: 1rem 0 0.75rem;
+    padding: 0 0 0.75rem;
     margin-top: auto;
 }
 
