@@ -143,7 +143,7 @@ class AFO_Calculator
 			<h2 class="nav-tab-wrapper">
 				<?php foreach ($tabs as $key => $label) : ?>
 					<a href="?page=afo-calculator&tab=<?php echo esc_attr($key); ?>"
-					   class="nav-tab <?php echo $active_tab === $key ? 'nav-tab-active' : ''; ?>">
+						class="nav-tab <?php echo $active_tab === $key ? 'nav-tab-active' : ''; ?>">
 						<?php echo esc_html($label); ?>
 					</a>
 				<?php endforeach; ?>
@@ -160,16 +160,16 @@ class AFO_Calculator
 							<th scope="row">API Key</th>
 							<td>
 								<input type="text" name="afo_api_key"
-								       value="<?php echo esc_attr(get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">API Endpoint URL</th>
 							<td>
 								<input type="url" name="afo_api_url"
-								       value="<?php echo esc_attr(get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate')); ?>"
+									class="regular-text" />
 								<p class="description">POST/GET endpoint URL as defined in the Gist documentation.</p>
 							</td>
 						</tr>
@@ -233,7 +233,7 @@ class AFO_Calculator
 						$colour_row('Card Background',             'afo_card_bg_color',       '#ffffff');
 						$colour_row('Card Primary Text',           'afo_card_text_color',     '#111111', 'Monthly amount, stat values.');
 						$colour_row('Card Muted / Label Text',    'afo_card_muted_color',    '#555555', 'Stat labels, sub-labels, info paragraph.');
-						$colour_row('Card Circle Background',     'afo_card_circle_bg_color','#1a1a1a', 'The circle behind the monthly payment amount when using the card.');
+						$colour_row('Card Circle Background',     'afo_card_circle_bg_color', '#1a1a1a', 'The circle behind the monthly payment amount when using the card.');
 						?>
 					</table>
 
@@ -256,24 +256,24 @@ class AFO_Calculator
 							<th scope="row">Main Heading</th>
 							<td>
 								<input type="text" name="afo_left_heading"
-								       value="<?php echo esc_attr(get_option('afo_left_heading', 'Finance Options')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_left_heading', 'Finance Options')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Deposit Slider Label</th>
 							<td>
 								<input type="text" name="afo_deposit_label"
-								       value="<?php echo esc_attr(get_option('afo_deposit_label', 'How much do you want to deposit?')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_deposit_label', 'How much do you want to deposit?')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Deposit Slider Sub-label</th>
 							<td>
 								<input type="text" name="afo_deposit_sublabel"
-								       value="<?php echo esc_attr(get_option('afo_deposit_sublabel', '')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_deposit_sublabel', '')); ?>"
+									class="regular-text" />
 								<p class="description">Optional hint shown below the deposit label.</p>
 							</td>
 						</tr>
@@ -281,32 +281,32 @@ class AFO_Calculator
 							<th scope="row">Borrow Amount Label</th>
 							<td>
 								<input type="text" name="afo_borrow_label"
-								       value="<?php echo esc_attr(get_option('afo_borrow_label', 'Amount to borrow')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_borrow_label', 'Amount to borrow')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Borrow Amount Sub-label</th>
 							<td>
 								<input type="text" name="afo_borrow_sublabel"
-								       value="<?php echo esc_attr(get_option('afo_borrow_sublabel', '')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_borrow_sublabel', '')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Term Slider Label</th>
 							<td>
 								<input type="text" name="afo_term_label"
-								       value="<?php echo esc_attr(get_option('afo_term_label', 'Pay back over (Years)')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_term_label', 'Pay back over (Years)')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Term Slider Sub-label</th>
 							<td>
 								<input type="text" name="afo_term_sublabel"
-								       value="<?php echo esc_attr(get_option('afo_term_sublabel', '')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_term_sublabel', '')); ?>"
+									class="regular-text" />
 								<p class="description">E.g. "If the vehicle is over 7 years old the repayment period may be restricted."</p>
 							</td>
 						</tr>
@@ -318,16 +318,16 @@ class AFO_Calculator
 							<th scope="row">Panel Heading</th>
 							<td>
 								<input type="text" name="afo_right_heading"
-								       value="<?php echo esc_attr(get_option('afo_right_heading', 'Your personal finance example')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_right_heading', 'Your personal finance example')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Monthly Payment Sub-label</th>
 							<td>
 								<input type="text" name="afo_monthly_sublabel"
-								       value="<?php echo esc_attr(get_option('afo_monthly_sublabel', 'per month*')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_monthly_sublabel', 'per month*')); ?>"
+									class="regular-text" />
 								<p class="description">Shown below the large monthly amount in the circle.</p>
 							</td>
 						</tr>
@@ -335,8 +335,8 @@ class AFO_Calculator
 							<th scope="row">Quote Button Text</th>
 							<td>
 								<input type="text" name="afo_btn_text"
-								       value="<?php echo esc_attr(get_option('afo_btn_text', 'Get a quote')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_btn_text', 'Get a quote')); ?>"
+									class="regular-text" />
 							</td>
 						</tr>
 					</table>
@@ -351,65 +351,65 @@ class AFO_Calculator
 						<tr>
 							<th scope="row">Cash Price</th>
 							<td><input type="text" name="afo_rep_cash_price"
-							           value="<?php echo esc_attr(get_option('afo_rep_cash_price', '£15,000')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_cash_price', '£15,000')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Deposit</th>
 							<td><input type="text" name="afo_rep_deposit"
-							           value="<?php echo esc_attr(get_option('afo_rep_deposit', '£0')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_deposit', '£0')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Total Amount of Credit</th>
 							<td><input type="text" name="afo_rep_credit"
-							           value="<?php echo esc_attr(get_option('afo_rep_credit', '£15,000')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_credit', '£15,000')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Finance Term</th>
 							<td><input type="text" name="afo_rep_term"
-							           value="<?php echo esc_attr(get_option('afo_rep_term', '7 years')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_term', '7 years')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Monthly Payments</th>
 							<td>
 								<input type="text" name="afo_rep_monthly"
-								       value="<?php echo esc_attr(get_option('afo_rep_monthly', '84 monthly payments of £235.18')); ?>"
-								       class="regular-text" />
+									value="<?php echo esc_attr(get_option('afo_rep_monthly', '84 monthly payments of £235.18')); ?>"
+									class="regular-text" />
 								<p class="description">E.g. "84 monthly payments of £235.18"</p>
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Agreement Type</th>
 							<td><input type="text" name="afo_rep_agreement"
-							           value="<?php echo esc_attr(get_option('afo_rep_agreement', 'Hire purchase agreement')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_agreement', 'Hire purchase agreement')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Option to Purchase Fee</th>
 							<td><input type="text" name="afo_rep_purchase_fee"
-							           value="<?php echo esc_attr(get_option('afo_rep_purchase_fee', '£1')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_purchase_fee', '£1')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Total Amount Payable</th>
 							<td><input type="text" name="afo_rep_total_payable"
-							           value="<?php echo esc_attr(get_option('afo_rep_total_payable', '£19,755.46')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_total_payable', '£19,755.46')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Representative APR</th>
 							<td><input type="text" name="afo_rep_apr"
-							           value="<?php echo esc_attr(get_option('afo_rep_apr', '8.5%')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_apr', '8.5%')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Rate of Interest</th>
 							<td><input type="text" name="afo_rep_interest"
-							           value="<?php echo esc_attr(get_option('afo_rep_interest', '8.5% fixed')); ?>"
-							           class="regular-text" /></td>
+									value="<?php echo esc_attr(get_option('afo_rep_interest', '8.5% fixed')); ?>"
+									class="regular-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row">Footer Notice</th>
@@ -422,7 +422,7 @@ class AFO_Calculator
 				<?php submit_button(); ?>
 			</form>
 		</div>
-<?php
+	<?php
 	}
 
 	// ─── Frontend asset enqueueing ────────────────────────────────────────────
@@ -482,7 +482,7 @@ class AFO_Calculator
 			'--afo-card-bg'        => get_option('afo_card_bg_color',       '#ffffff'),
 			'--afo-card-text'      => get_option('afo_card_text_color',     '#111111'),
 			'--afo-card-muted'     => get_option('afo_card_muted_color',    '#555555'),
-			'--afo-card-circle-bg' => get_option('afo_card_circle_bg_color','#1a1a1a'),
+			'--afo-card-circle-bg' => get_option('afo_card_circle_bg_color', '#1a1a1a'),
 			// Rep example
 			'--afo-rep-text'       => get_option('afo_rep_text_color',      '#ffffff'),
 			'--afo-rep-muted'      => get_option('afo_rep_muted_color',     '#ffcccc'),
@@ -549,17 +549,17 @@ class AFO_Calculator
 		$rep_monthly      = get_option('afo_rep_monthly',      '84 monthly payments of £235.18');
 		$rep_agreement    = get_option('afo_rep_agreement',    'Hire purchase agreement');
 		$rep_purchase_fee = get_option('afo_rep_purchase_fee', '£1');
-		$rep_total_payable= get_option('afo_rep_total_payable','£19,755.46');
+		$rep_total_payable = get_option('afo_rep_total_payable', '£19,755.46');
 		$rep_apr          = get_option('afo_rep_apr',          '8.5%');
 		$rep_interest     = get_option('afo_rep_interest',     '8.5% fixed');
 		$rep_footer       = get_option('afo_rep_footer',       'Rates may differ as they are dependent on individual circumstances. Subject to status.');
 
 		ob_start();
-?>
+	?>
 		<div class="afo-calculator-container"
-		     data-api-key="<?php echo esc_attr($api_key); ?>"
-		     data-api-url="<?php echo esc_url($api_url); ?>"
-		     data-price="<?php echo esc_attr($price); ?>">
+			data-api-key="<?php echo esc_attr($api_key); ?>"
+			data-api-url="<?php echo esc_url($api_url); ?>"
+			data-price="<?php echo esc_attr($price); ?>">
 
 			<!-- ═══════════════════════════════════════
 			     LEFT PANEL — CONTROLS
@@ -571,7 +571,7 @@ class AFO_Calculator
 				<div class="afo-price-header">
 					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
 					<p>With a deposit of <span id="afo-display-deposit">£0.00</span>,
-					   balance to finance: <span id="afo-display-borrow">£<?php echo number_format($price, 2); ?></span></p>
+						balance to finance: <span id="afo-display-borrow">£<?php echo number_format($price, 2); ?></span></p>
 				</div>
 
 				<!-- DEPOSIT SLIDER -->
@@ -582,17 +582,17 @@ class AFO_Calculator
 					<?php endif; ?>
 					<div class="afo-slider-track-wrap">
 						<button class="afo-arrow-btn" type="button" data-target="afo-deposit" data-dir="-1"
-						        aria-label="Decrease deposit">&#8249;</button>
+							aria-label="Decrease deposit">&#8249;</button>
 						<div class="afo-slider-inner">
 							<div class="afo-bubble" id="afo-bubble-deposit">£0.00</div>
 							<input type="range" id="afo-deposit"
-							       min="0"
-							       max="<?php echo esc_attr($price); ?>"
-							       value="0"
-							       step="100">
+								min="0"
+								max="<?php echo esc_attr($price); ?>"
+								value="0"
+								step="100">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-deposit" data-dir="1"
-						        aria-label="Increase deposit">&#8250;</button>
+							aria-label="Increase deposit">&#8250;</button>
 					</div>
 					<div class="afo-slider-range-labels">
 						<span>£0</span>
@@ -608,17 +608,17 @@ class AFO_Calculator
 					<?php endif; ?>
 					<div class="afo-slider-track-wrap">
 						<button class="afo-arrow-btn" type="button" data-target="afo-borrow" data-dir="-1"
-						        aria-label="Decrease borrow amount">&#8249;</button>
+							aria-label="Decrease borrow amount">&#8249;</button>
 						<div class="afo-slider-inner">
 							<div class="afo-bubble" id="afo-bubble-borrow">£<?php echo number_format($price, 2); ?></div>
 							<input type="range" id="afo-borrow"
-							       min="0"
-							       max="<?php echo esc_attr($price); ?>"
-							       value="<?php echo esc_attr($price); ?>"
-							       step="100">
+								min="0"
+								max="<?php echo esc_attr($price); ?>"
+								value="<?php echo esc_attr($price); ?>"
+								step="100">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-borrow" data-dir="1"
-						        aria-label="Increase borrow amount">&#8250;</button>
+							aria-label="Increase borrow amount">&#8250;</button>
 					</div>
 					<div class="afo-slider-range-labels">
 						<span>£0</span>
@@ -634,17 +634,17 @@ class AFO_Calculator
 					<?php endif; ?>
 					<div class="afo-slider-track-wrap">
 						<button class="afo-arrow-btn" type="button" data-target="afo-term" data-dir="-1"
-						        aria-label="Decrease term">&#8249;</button>
+							aria-label="Decrease term">&#8249;</button>
 						<div class="afo-slider-inner">
 							<div class="afo-bubble" id="afo-bubble-term">5 years</div>
 							<input type="range" id="afo-term"
-							       min="2"
-							       max="15"
-							       value="5"
-							       step="0.5">
+								min="2"
+								max="15"
+								value="5"
+								step="0.5">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-term" data-dir="1"
-						        aria-label="Increase term">&#8250;</button>
+							aria-label="Increase term">&#8250;</button>
 					</div>
 					<div class="afo-slider-range-labels">
 						<span>2 years</span>
@@ -665,92 +665,94 @@ class AFO_Calculator
 				<!-- Inner card: white background by default -->
 				<div class="afo-results-card">
 
-				<!-- Hero: circle + key figures -->
-				<div class="afo-hero-row">
-					<div class="afo-monthly-circle">
-						<span class="afo-monthly-amount" id="afo-res-monthly">£--</span>
-						<span class="afo-monthly-sublabel"><?php echo esc_html($monthly_sublabel); ?></span>
+					<!-- Hero: circle + key figures -->
+					<div class="afo-hero-row">
+						<div class="afo-monthly-circle">
+							<span class="afo-monthly-amount" id="afo-res-monthly">£--</span>
+							<span class="afo-monthly-sublabel"><?php echo esc_html($monthly_sublabel); ?></span>
+						</div>
+						<div class="afo-hero-stats">
+							<!-- Total cost of credit is intentionally ABOVE total amount payable per spec -->
+							<div class="afo-hero-stat-row">
+								<div class="afo-hero-stat">
+									<span class="stat-label">Total cost of credit</span>
+									<span class="stat-value" id="afo-res-credit">£--</span>
+								</div>
+								<div class="afo-hero-stat">
+									<span class="stat-label">APR</span>
+									<span class="stat-value" id="afo-res-rate">--%</span>
+								</div>
+							</div>
+							<div class="afo-hero-stat-row">
+								<div class="afo-hero-stat">
+									<span class="stat-label">Total amount payable</span>
+									<span class="stat-value" id="afo-res-total">£--</span>
+								</div>
+							</div>
+							<div class="afo-hero-info">
+								Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($price, 2); ?></span></strong><br>
+								Amount based on <strong><span id="afo-res-months">60</span> month</strong> repayment plan.
+							</div>
+						</div>
 					</div>
-					<div class="afo-hero-stats">
-						<!-- Total cost of credit is intentionally ABOVE total amount payable per spec -->
-						<div class="afo-hero-stat-row">
-							<div class="afo-hero-stat">
-								<span class="stat-label">Total cost of credit</span>
-								<span class="stat-value" id="afo-res-credit">£--</span>
-							</div>
-							<div class="afo-hero-stat">
-								<span class="stat-label">APR</span>
-								<span class="stat-value" id="afo-res-rate">--%</span>
-							</div>
-						</div>
-						<div class="afo-hero-stat-row">
-							<div class="afo-hero-stat">
-								<span class="stat-label">Total amount payable</span>
-								<span class="stat-value" id="afo-res-total">£--</span>
-							</div>
-						</div>
-						<div class="afo-hero-info">
-							Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($price, 2); ?></span></strong><br>
-							Amount based on <strong><span id="afo-res-months">60</span> month</strong> repayment plan.
-						</div>
-					</div>
-				</div>
 
-				<button class="afo-btn" id="afo-quote-btn" type="button">
-					<?php echo esc_html($btn_text); ?>
-				</button>
+					<button class="afo-btn" id="afo-quote-btn" type="button">
+						<?php echo esc_html($btn_text); ?>
+					</button>
+
+
+
+					<!-- Representative Example table -->
+					<div class="afo-rep-example">
+						<div class="afo-rep-heading">Representative Example</div>
+						<div class="afo-rep-grid">
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Vehicle Price</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_cash_price); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Repayment Amount</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_monthly); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Finance Term</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_term); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Total Amount Payable</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_total_payable); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">APR</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_apr); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Option to Purchase Fee</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_purchase_fee); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Deposit</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_deposit); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Rate of Interest per Annum</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_interest); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Loan Amount</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_credit); ?></span>
+							</div>
+							<div class="afo-rep-row">
+								<span class="afo-rep-label">Agreement Type</span>
+								<span class="afo-rep-value"><?php echo esc_html($rep_agreement); ?></span>
+							</div>
+						</div>
+						<?php if (! empty($rep_footer)) : ?>
+							<p class="afo-rep-footer"><?php echo esc_html($rep_footer); ?></p>
+						<?php endif; ?>
+					</div>
 
 				</div><!-- /afo-results-card -->
-
-				<!-- Representative Example table -->
-				<div class="afo-rep-example">
-					<div class="afo-rep-heading">Representative Example</div>
-					<div class="afo-rep-grid">
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Vehicle Price</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_cash_price); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Repayment Amount</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_monthly); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Finance Term</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_term); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Total Amount Payable</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_total_payable); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">APR</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_apr); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Option to Purchase Fee</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_purchase_fee); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Deposit</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_deposit); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Rate of Interest per Annum</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_interest); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Loan Amount</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_credit); ?></span>
-						</div>
-						<div class="afo-rep-row">
-							<span class="afo-rep-label">Agreement Type</span>
-							<span class="afo-rep-value"><?php echo esc_html($rep_agreement); ?></span>
-						</div>
-					</div>
-					<?php if (! empty($rep_footer)) : ?>
-						<p class="afo-rep-footer"><?php echo esc_html($rep_footer); ?></p>
-					<?php endif; ?>
-				</div>
 
 			</div><!-- /afo-results -->
 
