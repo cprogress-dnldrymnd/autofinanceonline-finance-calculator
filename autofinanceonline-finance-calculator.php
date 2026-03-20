@@ -376,9 +376,9 @@ class AFO_Calculator
 							<th scope="row">Monthly Payments</th>
 							<td>
 								<input type="text" name="afo_rep_monthly"
-									value="<?php echo esc_attr(get_option('afo_rep_monthly', '£235.18')); ?>"
+									value="<?php echo esc_attr(get_option('afo_rep_monthly', '84 monthly payments of £235.18')); ?>"
 									class="regular-text" />
-								<p class="description">E.g. £235.18</p>
+								<p class="description">E.g. "84 monthly payments of £235.18"</p>
 							</td>
 						</tr>
 						<tr>
