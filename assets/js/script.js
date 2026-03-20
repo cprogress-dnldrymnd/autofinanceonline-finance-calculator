@@ -35,15 +35,17 @@ function initializeAfoCalculator() {
 
     let debounceTimer;
 
-    /**
+   /**
      * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
-     * * @param {Event} e The input event object triggered by slider manipulation.
+     * Includes null-safety checks for programmatic bootstrapping.
+     * * @param {Event|Object} e The input event object triggered by slider manipulation.
      * @return {void}
      */
     function syncSliders(e) {
-        if (e && e.target.id === 'afo-deposit') {
+        // Safely evaluate event properties to prevent null reference errors during init
+        if (e && e.target && e.target.id === 'afo-deposit') {
             borrowSlider.value = price - parseFloat(depositSlider.value);
-        } else if (e && e.target.id === 'afo-borrow') {
+        } else if (e && e.target && e.target.id === 'afo-borrow') {
             depositSlider.value = price - parseFloat(borrowSlider.value);
         }
 
