@@ -207,13 +207,14 @@ class AFO_Calculator
 
 				<div class="afo-slider-group">
 					<label for="afo-deposit">A deposit of</label>
-					<input type="range" id="afo-deposit" min="0" max="<?php echo esc_attr($price); ?>" value="0" step="100">
+					<input type="range" id="afo-deposit" min="0" max="<?php echo esc_attr($price); ?>" value="0" step="1">
 				</div>
 
 				<div class="afo-slider-group">
 					<label for="afo-borrow">Amount to borrow</label>
-					<input type="range" id="afo-borrow" min="0" max="<?php echo esc_attr($price); ?>" value="<?php echo esc_attr($price); ?>" step="100">
+					<input type="range" id="afo-borrow" min="0" max="<?php echo esc_attr($price); ?>" value="<?php echo esc_attr($price); ?>" step="1">
 				</div>
+				
 				<div class="afo-slider-group">
 					<label for="afo-term">Pay back over (Years)</label>
 					<input type="range" id="afo-term" min="2" max="15" value="5" step="0.5">
@@ -240,7 +241,7 @@ class AFO_Calculator
 				</div>
 				<button class="afo-btn" id="afo-quote-btn">Get a quote</button>
 				<p class="afo-disclaimer"><strong>Representative Example</strong> <br>
-				Cash price £15,000, deposit £0, total amount of credit £15,000, term 7 years, 84 monthly payments of £235.18, on a hire purchase agreement, option to purchase fee £1, total amount payable £19,755.46, representative APR 8.5%, rate of interest 8.5% fixed. Rates may differ as they are dependent on individual circumstances. Subject to status. </p>
+					Cash price £15,000, deposit £0, total amount of credit £15,000, term 7 years, 84 monthly payments of £235.18, on a hire purchase agreement, option to purchase fee £1, total amount payable £19,755.46, representative APR 8.5%, rate of interest 8.5% fixed. Rates may differ as they are dependent on individual circumstances. Subject to status. </p>
 			</div>
 		</div>
 <?php
