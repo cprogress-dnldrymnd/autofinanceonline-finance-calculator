@@ -13,6 +13,8 @@ let afoInitAttempts = 0;
  * @return {void}
  */
 function initializeAfoCalculator() {
+    console.log(afoConfig.apiUrl);
+    console.log('test');
     // Polling mechanism: Wait for afoConfig if async/defer optimizations altered script execution order
     if (typeof afoConfig === 'undefined') {
         afoInitAttempts++;
