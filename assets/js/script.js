@@ -142,12 +142,33 @@ function initializeAfoCalculator() {
                     document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
 
-                // Inject the generated tracking link into the CTA button
+                /**
+                 * Inject the generated tracking link into the CTA button and append dynamic UI state.
+                 * Utilizes the URL interface to safely mutate query parameters before execution.
+                 */
                 if (result.data.referrer && result.data.referrer.link) {
                     const quoteBtn = document.getElementById('afo-quote-btn');
                     if (quoteBtn) {
                         quoteBtn.onclick = () => {
-                            window.open(result.data.referrer.link, '_blank');
+                            try {
+                                // Initialize URL object from the API's base response
+                                const targetUrl = new URL(result.data.referrer.link);
+                                
+                                // Retrieve the exact current values from the active DOM elements
+                                const currentBorrow = document.getElementById('afo-borrow').value;
+                                const currentDeposit = document.getElementById('afo-deposit').value;
+                                
+                                // Inject or overwrite the required parameters for the third-party target
+                                targetUrl.searchParams.set('default-amount', currentBorrow);
+                                targetUrl.searchParams.set('deposit', currentDeposit);
+                                
+                                // Execute the redirect with the heavily mutated URL string
+                                window.open(targetUrl.toString(), '_blank');
+                            } catch (urlError) {
+                                console.error('AFO Link Mutation Error. Falling back to raw API string:', urlError);
+                                // Failsafe: Execute raw API link if local parsing encounters an exception
+                                window.open(result.data.referrer.link, '_blank');
+                            }
                         };
                     }
                 }
