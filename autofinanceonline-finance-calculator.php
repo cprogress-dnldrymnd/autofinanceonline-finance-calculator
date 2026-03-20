@@ -214,11 +214,10 @@ class AFO_Calculator
 					<label for="afo-borrow">Amount to borrow</label>
 					<input type="range" id="afo-borrow" min="0" max="<?php echo esc_attr($price); ?>" value="<?php echo esc_attr($price); ?>" step="100">
 				</div>
-
 				<div class="afo-slider-group">
-					<label for="afo-term">Pay back over (Months)</label>
-					<input type="range" id="afo-term" min="24" max="120" value="60" step="6">
-					<span id="afo-display-term">60 months</span>
+					<label for="afo-term">Pay back over (Years)</label>
+					<input type="range" id="afo-term" min="2" max="15" value="5" step="0.5">
+					<span id="afo-display-term">5 years</span>
 				</div>
 			</div>
 

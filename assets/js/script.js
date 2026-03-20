@@ -37,24 +37,31 @@ function initializeAfoCalculator() {
     let debounceTimer;
 
     /**
-      * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
-      * Includes null-safety checks for programmatic bootstrapping.
-      * * @param {Event|Object} e The input event object triggered by slider manipulation.
-      * @return {void}
-      */
+       * Synchronizes the Deposit and Borrow sliders based on the fixed vehicle price.
+       * Handles formatting for the new 'years' slider while passing months to the results UI.
+       * @param {Event|Object} e The input event object triggered by slider manipulation.
+       * @return {void}
+       */
     function syncSliders(e) {
-        // Safely evaluate event properties to prevent null reference errors during init
         if (e && e.target && e.target.id === 'afo-deposit') {
             borrowSlider.value = price - parseFloat(depositSlider.value);
         } else if (e && e.target && e.target.id === 'afo-borrow') {
             depositSlider.value = price - parseFloat(borrowSlider.value);
         }
 
-        // Update Text Displays with localized currency formatting
+        // Extract years and convert to total months for the results display
+        const termYears = parseFloat(termSlider.value);
+        const termMonths = Math.round(termYears * 12);
+
+        // Update Text Displays with localized currency and time formatting
         document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        document.getElementById('afo-display-term').innerText = `${termSlider.value} months`;
-        document.getElementById('afo-res-months').innerText = termSlider.value;
+
+        // Update slider label to show years
+        document.getElementById('afo-display-term').innerText = `${termYears} year${termYears === 1 ? '' : 's'}`;
+
+        // Update the results box to show the exact number of monthly payments
+        document.getElementById('afo-res-months').innerText = termMonths;
 
         triggerApiCall();
     }
@@ -71,24 +78,28 @@ function initializeAfoCalculator() {
         }, 500); // 500ms latency buffer
     }
 
-    /**
-        * Fetches quote details from the Auto Finance Online API.
-        * Includes intelligent fallback parsing for dynamic API response structures.
-        * * @param {number|string} deposit The current deposit amount.
-        * @param {number|string} term The repayment term in months.
-        * @return {Promise<void>}
-        */
-    async function fetchFinanceData(deposit, term) {
+   /**
+     * Fetches quote details from the Auto Finance Online API.
+     * Automatically converts the frontend 'years' input into the 'months' integer required by the API.
+     * @param {number|string} deposit The current deposit amount.
+     * @param {number|string} termYears The repayment term in years from the slider.
+     * @return {Promise<void>}
+     */
+    async function fetchFinanceData(deposit, termYears) {
         if (!afoConfig.apiKey) {
             console.error('AFO Calculator: API Key is missing from configuration.');
             return;
         }
 
         const baseUrl = afoConfig.apiUrl;
+        
+        // Translate the frontend year decimal (e.g., 2.5) into an absolute month integer (e.g., 30)
+        const termMonths = Math.round(parseFloat(termYears) * 12);
+
         const params = new URLSearchParams({
             vehicle_price: price,
             deposit: parseFloat(deposit),
-            term_length: parseInt(term, 10)
+            term_length: termMonths // API explicitly requires months
         });
 
         try {
@@ -103,7 +114,7 @@ function initializeAfoCalculator() {
             if (response.status === 429) {
                 const retryAfter = response.headers.get("Retry-After") || 60;
                 console.warn(`AFO API Rate limit exceeded. Halting execution for ${retryAfter} seconds.`);
-                setTimeout(() => fetchFinanceData(deposit, term), retryAfter * 1000);
+                setTimeout(() => fetchFinanceData(deposit, termYears), retryAfter * 1000);
                 return;
             }
 
@@ -112,68 +123,50 @@ function initializeAfoCalculator() {
                 try {
                     const errorData = await response.json();
                     if (errorData.message) errorMsg = errorData.message;
-                } catch (e) { }
+                } catch (e) {}
                 throw new Error(`AFO API Rejected Request: ${errorMsg}`);
             }
 
             const result = await response.json();
 
-            // Check if the response payload has the expected array
             if (result.success && result.data && result.data.finance_options && result.data.finance_options.length > 0) {
-
                 const options = result.data.finance_options;
-
-                // Attempt to find the best tier, accounting for potential capitalization variations
                 let bestOption = options.find(opt => opt.type && opt.type.toLowerCase() === 'excellent');
-
-                // SMART FALLBACK: If 'excellent' isn't explicitly defined, grab the first available option
+                
                 if (!bestOption) {
                     bestOption = options[0];
                 }
 
-                // Push the calculated values into the DOM
                 if (bestOption) {
-                    // Safety check to ensure the APR exists before printing
                     const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
                     document.getElementById('afo-res-rate').innerText = `${aprValue}% APR`;
-
-                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 }
 
-                /**
-                 * Inject the generated tracking link into the CTA button and append dynamic UI state.
-                 * Utilizes the URL interface to safely mutate query parameters before execution.
-                 */
                 if (result.data.referrer && result.data.referrer.link) {
                     const quoteBtn = document.getElementById('afo-quote-btn');
                     if (quoteBtn) {
                         quoteBtn.onclick = () => {
                             try {
-                                // Initialize URL object from the API's base response
                                 const targetUrl = new URL(result.data.referrer.link);
-                                
-                                // Retrieve the exact current values from the active DOM elements
                                 const currentBorrow = document.getElementById('afo-borrow').value;
                                 const currentDeposit = document.getElementById('afo-deposit').value;
                                 
-                                // Inject or overwrite the required parameters for the third-party target
                                 targetUrl.searchParams.set('default-amount', currentBorrow);
                                 targetUrl.searchParams.set('deposit', currentDeposit);
                                 
-                                // Execute the redirect with the heavily mutated URL string
                                 window.open(targetUrl.toString(), '_blank');
                             } catch (urlError) {
                                 console.error('AFO Link Mutation Error. Falling back to raw API string:', urlError);
-                                // Failsafe: Execute raw API link if local parsing encounters an exception
                                 window.open(result.data.referrer.link, '_blank');
                             }
                         };
                     }
                 }
             } else {
-                console.warn('AFO Calculator: API returned success, but finance_options array was missing or empty.', result);
+                 console.warn('AFO Calculator: API returned success, but finance_options array was missing or empty.', result);
             }
         } catch (error) {
             console.error('AFO Finance API Transport Error:', error);
