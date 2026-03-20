@@ -665,46 +665,49 @@ class AFO_Calculator
 				<!-- Inner card: white background by default -->
 				<div class="afo-results-card">
 
-					<!-- ── Loading overlay ───────────────────────────────────── -->
-					<div class="afo-loading-overlay" id="afo-loading-overlay" aria-hidden="true">
-						<div class="afo-spinner"></div>
-						<span class="afo-loading-label">Calculating&hellip;</span>
-					</div>
-
 					<!-- Hero: circle + key figures -->
-					<div class="afo-hero-row">
-						<div class="afo-monthly-circle">
-							<span class="afo-monthly-amount" id="afo-res-monthly">£--</span>
-							<span class="afo-monthly-sublabel"><?php echo esc_html($monthly_sublabel); ?></span>
+					<div class="afo-main-results">
+						<!-- ── Loading overlay ───────────────────────────────────── -->
+						<div class="afo-loading-overlay" id="afo-loading-overlay" aria-hidden="true">
+							<div class="afo-spinner"></div>
+							<span class="afo-loading-label">Calculating&hellip;</span>
 						</div>
-						<div class="afo-hero-stats">
-							<!-- Total cost of credit is intentionally ABOVE total amount payable per spec -->
-							<div class="afo-hero-stat-row">
-								<div class="afo-hero-stat">
-									<span class="stat-label">Total cost of credit</span>
-									<span class="stat-value" id="afo-res-credit">£--</span>
-								</div>
-								<div class="afo-hero-stat">
-									<span class="stat-label">APR</span>
-									<span class="stat-value" id="afo-res-rate">--%</span>
-								</div>
+						<div class="afo-hero-row">
+							<div class="afo-monthly-circle">
+								<span class="afo-monthly-amount" id="afo-res-monthly">£--</span>
+								<span class="afo-monthly-sublabel"><?php echo esc_html($monthly_sublabel); ?></span>
 							</div>
-							<div class="afo-hero-stat-row">
-								<div class="afo-hero-stat">
-									<span class="stat-label">Total amount payable</span>
-									<span class="stat-value" id="afo-res-total">£--</span>
+							<div class="afo-hero-stats">
+								<!-- Total cost of credit is intentionally ABOVE total amount payable per spec -->
+								<div class="afo-hero-stat-row">
+									<div class="afo-hero-stat">
+										<span class="stat-label">Total cost of credit</span>
+										<span class="stat-value" id="afo-res-credit">£--</span>
+									</div>
+									<div class="afo-hero-stat">
+										<span class="stat-label">APR</span>
+										<span class="stat-value" id="afo-res-rate">--%</span>
+									</div>
 								</div>
-							</div>
-							<div class="afo-hero-info">
-								Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($price, 2); ?></span></strong><br>
-								Amount based on <strong><span id="afo-res-months">60</span> month</strong> repayment plan.
+								<div class="afo-hero-stat-row">
+									<div class="afo-hero-stat">
+										<span class="stat-label">Total amount payable</span>
+										<span class="stat-value" id="afo-res-total">£--</span>
+									</div>
+								</div>
+								<div class="afo-hero-info">
+									Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($price, 2); ?></span></strong><br>
+									Amount based on <strong><span id="afo-res-months">60</span> month</strong> repayment plan.
+								</div>
 							</div>
 						</div>
+
+						<button class="afo-btn" id="afo-quote-btn" type="button">
+							<?php echo esc_html($btn_text); ?>
+						</button>
 					</div>
 
-					<button class="afo-btn" id="afo-quote-btn" type="button">
-						<?php echo esc_html($btn_text); ?>
-					</button>
+
 
 					<!-- Representative Example table -->
 					<div class="afo-rep-example">
