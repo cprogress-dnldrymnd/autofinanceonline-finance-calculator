@@ -380,11 +380,10 @@ input[type="range"]::-moz-range-thumb {
 
 .afo-rep-heading {
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--afo-rep-text, #ffffff);
     margin-bottom: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
 }
 
 .afo-rep-grid {
