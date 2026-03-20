@@ -4,7 +4,6 @@
  */
 .afo-calculator-container {
     display: flex;
-    flex-wrap: wrap;
     gap: 2rem;
     font-family: inherit;
     margin: 0 auto;
