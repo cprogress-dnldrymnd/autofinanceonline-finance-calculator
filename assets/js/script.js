@@ -1,49 +1,37 @@
 /**
  * Auto Finance Online Calculator Logic
- * Includes robust initialization and aggressive diagnostic logging to trace execution state.
+ * Handles slider synchronization, UI formatting, and external API queries.
+ * Incorporates polling to gracefully handle wp_localize_script deferral states.
  */
 
-// Global log to confirm the file is physically loaded by the browser
-console.log('[AFO] script.js has successfully loaded into the browser.');
+let afoInitAttempts = 0;
 
 /**
- * Core initialization function for the AFO Calculator.
- * Extracts DOM data, binds event listeners, and triggers the initial API payload.
- * * @return {void}
+ * Core initialization sequence for the calculator logic.
+ * Enforces strict dependency checking for the globally localized afoConfig object.
+ *
+ * @return {void}
  */
 function initializeAfoCalculator() {
-    console.log('[AFO] Initialization function triggered.');
-
-    const container = document.querySelector('.afo-calculator-container');
-    
-    if (!container) {
-        console.error('[AFO] FATAL: .afo-calculator-container not found in the DOM. The shortcode is not rendering properly or the selector is wrong.');
+    // Polling mechanism: Wait for afoConfig if async/defer optimizations altered script execution order
+    if (typeof afoConfig === 'undefined') {
+        afoInitAttempts++;
+        if (afoInitAttempts < 40) { // Retry for up to 2 seconds
+            setTimeout(initializeAfoCalculator, 50);
+        } else {
+            console.error('AFO Calculator FATAL: afoConfig object never initialized.');
+        }
         return;
     }
 
-    console.log('[AFO] Container found. Extracting dataset...', container.dataset);
-
-    const afoConfig = {
-        apiKey: container.dataset.apiKey,
-        apiUrl: container.dataset.apiUrl,
-        price: parseFloat(container.dataset.price)
-    };
-
-    if (!afoConfig.apiKey || isNaN(afoConfig.price)) {
-        console.error('[AFO] FATAL: Configuration data is missing or invalid.', afoConfig);
-        return;
-    }
-
-    const price = afoConfig.price;
+    const price = parseFloat(afoConfig.price);
     const depositSlider = document.getElementById('afo-deposit');
     const borrowSlider = document.getElementById('afo-borrow');
     const termSlider = document.getElementById('afo-term');
     const quoteBtn = document.getElementById('afo-quote-btn');
 
-    if (!depositSlider || !borrowSlider || !termSlider) {
-        console.error('[AFO] FATAL: One or more slider inputs are missing from the DOM.');
-        return;
-    }
+    // Graceful exit if shortcode markup is absent from the current DOM
+    if (!depositSlider || !borrowSlider || !termSlider) return;
 
     let debounceTimer;
 
@@ -53,16 +41,13 @@ function initializeAfoCalculator() {
      * @return {void}
      */
     function syncSliders(e) {
-        if (e && e.target) {
-             console.log(`[AFO] Slider manipulated: ${e.target.id} set to ${e.target.value}`);
-        }
-
         if (e && e.target.id === 'afo-deposit') {
             borrowSlider.value = price - parseFloat(depositSlider.value);
         } else if (e && e.target.id === 'afo-borrow') {
             depositSlider.value = price - parseFloat(borrowSlider.value);
         }
 
+        // Update Text Displays with localized currency formatting
         document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         document.getElementById('afo-display-term').innerText = `${termSlider.value} months`;
@@ -72,26 +57,30 @@ function initializeAfoCalculator() {
     }
 
     /**
-     * Executes the API call using a debounce mechanism to optimize performance.
+     * Executes the API call using a debounce mechanism to optimize performance
+     * and mitigate unnecessary rate limit consumption while dragging the slider.
      * * @return {void}
      */
     function triggerApiCall() {
-        console.log('[AFO] Preparing API call...');
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             fetchFinanceData(depositSlider.value, termSlider.value);
-        }, 500); 
+        }, 500); // 500ms latency buffer
     }
 
     /**
      * Fetches quote details from the Auto Finance Online API.
+     * Implements GET parameter construction and HTTP 429 rate limit handling.
      * * @param {number|string} deposit The current deposit amount.
      * @param {number|string} term The repayment term in months.
      * @return {Promise<void>}
      */
     async function fetchFinanceData(deposit, term) {
-        console.log(`[AFO] Executing API Request -> Deposit: ${deposit}, Term: ${term}`);
-        
+        if (!afoConfig.apiKey) {
+            console.error('AFO Calculator: API Key is missing from configuration.');
+            return;
+        }
+
         const baseUrl = afoConfig.apiUrl;
         const params = new URLSearchParams({
             vehicle_price: price,
@@ -100,10 +89,7 @@ function initializeAfoCalculator() {
         });
 
         try {
-            const requestUrl = `${baseUrl}?${params.toString()}`;
-            console.log(`[AFO] Fetching: ${requestUrl}`);
-
-            const response = await fetch(requestUrl, {
+            const response = await fetch(`${baseUrl}?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'X-API-Key': afoConfig.apiKey,
@@ -111,11 +97,9 @@ function initializeAfoCalculator() {
                 }
             });
 
-            console.log(`[AFO] API HTTP Status: ${response.status}`);
-
             if (response.status === 429) {
                 const retryAfter = response.headers.get("Retry-After") || 60;
-                console.warn(`[AFO] Rate limit hit. Retrying in ${retryAfter}s.`);
+                console.warn(`AFO API Rate limit exceeded. Halting execution for ${retryAfter} seconds.`);
                 setTimeout(() => fetchFinanceData(deposit, term), retryAfter * 1000);
                 return;
             }
@@ -126,11 +110,10 @@ function initializeAfoCalculator() {
                     const errorData = await response.json();
                     if (errorData.message) errorMsg = errorData.message;
                 } catch (e) {}
-                throw new Error(`API Rejected: ${errorMsg}`);
+                throw new Error(`AFO API Rejected Request: ${errorMsg}`);
             }
 
             const result = await response.json();
-            console.log('[AFO] Successful API Response received:', result);
 
             if (result.success && result.data && result.data.finance_options) {
                 const bestOption = result.data.finance_options.find(opt => opt.type === 'excellent');
@@ -140,7 +123,6 @@ function initializeAfoCalculator() {
                     document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                     document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                     document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    console.log('[AFO] UI successfully updated with new calculation.');
                 }
 
                 if (result.data.referrer && result.data.referrer.link) {
@@ -148,24 +130,22 @@ function initializeAfoCalculator() {
                         window.open(result.data.referrer.link, '_blank');
                     };
                 }
-            } else {
-                console.warn('[AFO] Unrecognized API response structure.', result);
             }
-
         } catch (error) {
-            console.error('[AFO] Network/Transport Error:', error);
+            console.error('AFO Finance API Transport Error:', error);
         }
     }
 
+    // Initialize Event Listeners
     depositSlider.addEventListener('input', syncSliders);
     borrowSlider.addEventListener('input', syncSliders);
     termSlider.addEventListener('input', syncSliders);
 
-    console.log('[AFO] Event listeners bound. Forcing initial sync...');
-    syncSliders({ target: null }); 
+    // Bootstrap initial payload
+    syncSliders({ target: null });
 }
 
-// Bulletproof execution: Check if DOM is already loaded. If so, run immediately. If not, wait for it.
+// Ensure execution bypasses standard load order restrictions
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeAfoCalculator);
 } else {
