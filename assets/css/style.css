@@ -1,0 +1,77 @@
+/**
+ * Core styling for the AFO Calculator Widget.
+ * Utilizes CSS variables for administrative overriding.
+ */
+.afo-calculator-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    font-family: inherit;
+    margin: 0 auto;
+}
+
+.afo-calculator-container > div {
+	flex-grow: 1;
+}
+
+.afo-results {
+    background: var(--afo-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.afo-slider-group {
+    margin-bottom: 1.5rem;
+}
+
+.afo-slider-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--afo-primary);
+}
+
+.afo-result-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 0.5rem;
+}
+
+.afo-result-row.afo-highlight {
+    border-bottom: none;
+    font-size: 1.2rem;
+    color: var(--afo-primary);
+    margin-top: 1rem;
+}
+
+.afo-btn {
+    background: var(--afo-primary);
+    color: #fff;
+    border: none;
+    padding: 1rem;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.2s ease;
+}
+
+.afo-btn:hover {
+    opacity: 0.9;
+}
+
+.afo-disclaimer {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin-top: 1rem;
+}
