@@ -374,8 +374,6 @@ input[type="range"]::-moz-range-thumb {
     font-size: 0.69rem;
     color: rgba(255, 255, 255, 0.6);
     margin: 0.65rem 0 0;
-    padding-top: 0.55rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
     line-height: 1.45;
 }
 
