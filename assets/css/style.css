@@ -389,12 +389,14 @@ input[type="range"]::-moz-range-thumb {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1.25rem;
+    border-top: 1px solid var(--afo-rep-border, rgba(255, 255, 255, 0.12));
+
 }
 
 .afo-rep-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 0.4rem;
     font-size: 0.74rem;
     border-bottom: 1px solid var(--afo-rep-border, rgba(255, 255, 255, 0.12));
