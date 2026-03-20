@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.0.0
+ * Version:     2.1.0
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -64,10 +64,32 @@ class AFO_Calculator
 		register_setting('afo_general_settings', 'afo_api_key');
 		register_setting('afo_general_settings', 'afo_api_url');
 
-		// ── Styles ───────────────────────────────────────────────────────────
+		// ── Styles — Left Panel ───────────────────────────────────────────────
 		register_setting('afo_style_settings', 'afo_primary_color');
-		register_setting('afo_style_settings', 'afo_bg_color');       // left panel bg
-		register_setting('afo_style_settings', 'afo_right_bg_color'); // right panel bg
+		register_setting('afo_style_settings', 'afo_bg_color');
+		register_setting('afo_style_settings', 'afo_left_heading_color');
+		register_setting('afo_style_settings', 'afo_left_label_color');
+		register_setting('afo_style_settings', 'afo_left_sublabel_color');
+		register_setting('afo_style_settings', 'afo_left_muted_color');
+		register_setting('afo_style_settings', 'afo_slider_track_color');
+		register_setting('afo_style_settings', 'afo_bubble_bg_color');
+		register_setting('afo_style_settings', 'afo_bubble_text_color');
+		register_setting('afo_style_settings', 'afo_arrow_bg_color');
+		register_setting('afo_style_settings', 'afo_arrow_text_color');
+
+		// ── Styles — Right Panel ──────────────────────────────────────────────
+		register_setting('afo_style_settings', 'afo_right_bg_color');
+		register_setting('afo_style_settings', 'afo_right_text_color');
+		register_setting('afo_style_settings', 'afo_right_muted_color');
+		register_setting('afo_style_settings', 'afo_circle_bg_color');
+		register_setting('afo_style_settings', 'afo_btn_bg_color');
+		register_setting('afo_style_settings', 'afo_btn_text_color');
+
+		// ── Styles — Representative Example ──────────────────────────────────
+		register_setting('afo_style_settings', 'afo_rep_bg_color');
+		register_setting('afo_style_settings', 'afo_rep_text_color');
+		register_setting('afo_style_settings', 'afo_rep_muted_color');
+		register_setting('afo_style_settings', 'afo_rep_border_color');
 
 		// ── Labels ───────────────────────────────────────────────────────────
 		register_setting('afo_label_settings', 'afo_left_heading');
@@ -148,33 +170,66 @@ class AFO_Calculator
 						</tr>
 					</table>
 
-			
 				<?php } elseif ($active_tab === 'styles') {
 					settings_fields('afo_style_settings');
+
+					// Helper: renders a colour row with an optional description.
+					// Using an inline closure keeps the table markup clean.
+					$colour_row = function (string $label, string $option_name, string $default, string $desc = '') {
+						$value = get_option($option_name, $default);
+						echo '<tr>';
+						echo '<th scope="row">' . esc_html($label) . '</th>';
+						echo '<td>';
+						echo '<input type="color" name="' . esc_attr($option_name) . '" value="' . esc_attr($value) . '" />';
+						echo '<code style="margin-left:10px;vertical-align:middle;">' . esc_html($value) . '</code>';
+						if ($desc) {
+							echo '<p class="description">' . esc_html($desc) . '</p>';
+						}
+						echo '</td>';
+						echo '</tr>';
+					};
 				?>
+
+					<!-- ── LEFT PANEL ─────────────────────────────────────────── -->
+					<h2 style="margin-top:1.5rem;">Left Panel</h2>
 					<table class="form-table">
-						<tr>
-							<th scope="row">Accent Colour <small>(sliders, thumb)</small></th>
-							<td>
-								<input type="color" name="afo_primary_color"
-								       value="<?php echo esc_attr(get_option('afo_primary_color', '#cc2020')); ?>" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">Left Panel Background</th>
-							<td>
-								<input type="color" name="afo_bg_color"
-								       value="<?php echo esc_attr(get_option('afo_bg_color', '#f0f2f5')); ?>" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">Right Panel Background</th>
-							<td>
-								<input type="color" name="afo_right_bg_color"
-								       value="<?php echo esc_attr(get_option('afo_right_bg_color', '#cc2020')); ?>" />
-								<p class="description">Typically matches the accent colour but can differ.</p>
-							</td>
-						</tr>
+						<?php
+						$colour_row('Slider Accent / Thumb',        'afo_primary_color',      '#cc2020', 'Slider thumb, focused track fill.');
+						$colour_row('Panel Background',             'afo_bg_color',            '#f0f2f5');
+						$colour_row('Main Heading Text',            'afo_left_heading_color',  '#111111');
+						$colour_row('Slider Label Text',           'afo_left_label_color',    '#222222');
+						$colour_row('Slider Sub-label Text',       'afo_left_sublabel_color', '#888888');
+						$colour_row('Secondary / Hint Text',       'afo_left_muted_color',    '#666666', 'Price header paragraph, range min/max labels.');
+						$colour_row('Slider Track (unfilled)',     'afo_slider_track_color',  '#d0d3d8');
+						$colour_row('Bubble Background',           'afo_bubble_bg_color',     '#1a1a1a', 'Floating value tooltip above each slider.');
+						$colour_row('Bubble Text',                 'afo_bubble_text_color',   '#ffffff');
+						$colour_row('Arrow Button Background',     'afo_arrow_bg_color',      '#2a2a2a');
+						$colour_row('Arrow Button Icon',           'afo_arrow_text_color',    '#ffffff');
+						?>
+					</table>
+
+					<!-- ── RIGHT PANEL ────────────────────────────────────────── -->
+					<h2 style="margin-top:2rem;">Right Panel</h2>
+					<table class="form-table">
+						<?php
+						$colour_row('Panel Background',            'afo_right_bg_color',      '#cc2020', 'Typically matches the accent colour but can differ.');
+						$colour_row('Primary Text',                'afo_right_text_color',    '#ffffff', 'Heading, stat values, monthly amount.');
+						$colour_row('Secondary / Muted Text',      'afo_right_muted_color',   '#ffcccc', 'Stat labels, sub-labels, hero info paragraph.');
+						$colour_row('Monthly Circle Background',   'afo_circle_bg_color',     '#7a0000', 'The dark circle behind the monthly payment amount.');
+						$colour_row('Quote Button Background',     'afo_btn_bg_color',        '#ffffff');
+						$colour_row('Quote Button Text',           'afo_btn_text_color',      '#cc2020');
+						?>
+					</table>
+
+					<!-- ── REPRESENTATIVE EXAMPLE BOX ─────────────────────────── -->
+					<h2 style="margin-top:2rem;">Representative Example Box</h2>
+					<table class="form-table">
+						<?php
+						$colour_row('Box Background',              'afo_rep_bg_color',        '#7a0000');
+						$colour_row('Row Value Text',              'afo_rep_text_color',      '#ffffff');
+						$colour_row('Row Label / Footer Text',    'afo_rep_muted_color',     '#ffcccc');
+						$colour_row('Row Divider / Border',       'afo_rep_border_color',    '#ffffff33', 'Supports 8-digit hex for transparency, e.g. #ffffff33.');
+						?>
 					</table>
 
 				<?php } elseif ($active_tab === 'labels') {
@@ -359,14 +414,14 @@ class AFO_Calculator
 
 	/**
 	 * Enqueues frontend scripts and stylesheets, passing dynamic PHP variables
-	 * to JS and injecting three CSS custom properties for theme colours.
+	 * to JS and injecting all CSS custom properties for full colour control.
 	 *
 	 * @return void
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.0.0');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.0.0', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.1.0');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.1.0', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);
@@ -387,18 +442,45 @@ class AFO_Calculator
 			'nonce'  => wp_create_nonce('afo_calc_nonce'),
 		]);
 
-		// Inject three CSS custom properties for full colour control
-		$primary_color  = get_option('afo_primary_color',  '#cc2020');
-		$left_bg_color  = get_option('afo_bg_color',        '#f0f2f5');
-		$right_bg_color = get_option('afo_right_bg_color', '#cc2020');
+		// ── Collect all colour options ────────────────────────────────────────
+		$vars = [
+			// Left panel
+			'--afo-primary'        => get_option('afo_primary_color',      '#cc2020'),
+			'--afo-left-bg'        => get_option('afo_bg_color',            '#f0f2f5'),
+			'--afo-left-heading'   => get_option('afo_left_heading_color',  '#111111'),
+			'--afo-left-label'     => get_option('afo_left_label_color',    '#222222'),
+			'--afo-left-sublabel'  => get_option('afo_left_sublabel_color', '#888888'),
+			'--afo-left-muted'     => get_option('afo_left_muted_color',    '#666666'),
+			'--afo-slider-track'   => get_option('afo_slider_track_color',  '#d0d3d8'),
+			'--afo-bubble-bg'      => get_option('afo_bubble_bg_color',     '#1a1a1a'),
+			'--afo-bubble-text'    => get_option('afo_bubble_text_color',   '#ffffff'),
+			'--afo-arrow-bg'       => get_option('afo_arrow_bg_color',      '#2a2a2a'),
+			'--afo-arrow-text'     => get_option('afo_arrow_text_color',    '#ffffff'),
+			// Right panel
+			'--afo-right-bg'       => get_option('afo_right_bg_color',      '#cc2020'),
+			'--afo-right-text'     => get_option('afo_right_text_color',    '#ffffff'),
+			'--afo-right-muted'    => get_option('afo_right_muted_color',   '#ffcccc'),
+			'--afo-circle-bg'      => get_option('afo_circle_bg_color',     '#7a0000'),
+			'--afo-btn-bg'         => get_option('afo_btn_bg_color',        '#ffffff'),
+			'--afo-btn-text'       => get_option('afo_btn_text_color',      '#cc2020'),
+			// Rep example
+			'--afo-rep-bg'         => get_option('afo_rep_bg_color',        '#7a0000'),
+			'--afo-rep-text'       => get_option('afo_rep_text_color',      '#ffffff'),
+			'--afo-rep-muted'      => get_option('afo_rep_muted_color',     '#ffcccc'),
+			'--afo-rep-border'     => get_option('afo_rep_border_color',    '#ffffff33'),
+		];
 
-		$custom_css = "
-			:root {
-				--afo-primary:   {$primary_color};
-				--afo-left-bg:   {$left_bg_color};
-				--afo-right-bg:  {$right_bg_color};
-			}
-		";
+		// Build and inject the :root block
+		$root_vars = implode(
+			"\n\t\t\t\t",
+			array_map(
+				fn($prop, $val) => $prop . ': ' . $val . ';',
+				array_keys($vars),
+				$vars
+			)
+		);
+
+		$custom_css = ":root {\n\t\t\t\t{$root_vars}\n\t\t\t}";
 		wp_add_inline_style('afo-styles', $custom_css);
 	}
 
