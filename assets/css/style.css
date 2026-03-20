@@ -1,85 +1,271 @@
 /**
  * Core styling for the AFO Calculator Widget.
  * Utilizes CSS variables for administrative overriding.
+ * Optimized for the 2-column card layout.
  */
-.afo-calculator-container {
+
+.afo-calculator-wrapper {
     display: flex;
-    gap: 2rem;
+    flex-wrap: wrap;
+    background: var(--afo-bg);
+    border-radius: 12px;
+    overflow: hidden;
     font-family: inherit;
-    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.afo-results {
-    background: var(--afo-bg);
+/* Left Column: Controls */
+.afo-left-col {
+    flex: 1 1 50%;
+    padding: 3rem 2rem;
+    background: #f4f6f8;
+}
+
+.afo-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+    color: #1a202c;
+}
+
+.afo-ui-group {
+    margin-bottom: 3rem;
+}
+
+.afo-ui-group label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2d3748;
+}
+
+.afo-warning-text {
+    font-size: 0.85rem;
+    color: var(--afo-primary);
+    margin-bottom: 1.5rem;
+}
+
+.afo-slider-ui {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    margin-top: 3rem; /* Space for tooltip */
+}
+
+.afo-step-btn {
+    background: var(--afo-secondary);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.afo-range-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+.afo-tooltip {
+    position: absolute;
+    top: -45px;
+    background: var(--afo-secondary);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.afo-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0;
+    border-style: solid;
+    border-color: var(--afo-secondary) transparent transparent transparent;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #cbd5e0;
+    border-radius: 4px;
+    outline: none;
+    margin: 10px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--afo-primary);
+    cursor: pointer;
+    background-image: linear-gradient(90deg, transparent 33%, #fff 33%, #fff 40%, transparent 40%, transparent 60%, #fff 60%, #fff 67%, transparent 67%);
+}
+
+.afo-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 0.5rem;
+}
+
+/* Right Column: Results Card */
+.afo-right-col {
+    flex: 1 1 50%;
+    background: var(--afo-primary);
+    color: #fff;
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.afo-card-header {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.afo-inner-card {
+    background: #f7fafc;
     border-radius: 8px;
+    padding: 1.5rem;
+    color: #1a202c;
+}
+
+.afo-card-top {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.afo-monthly-circle {
+    background: var(--afo-secondary);
+    color: #fff;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.afo-circle-val {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.afo-circle-lbl {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.afo-card-stats {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.afo-slider-group {
-    margin-bottom: 1.5rem;
+.afo-stat-lbl {
+    display: block;
+    font-size: 0.9rem;
+    color: #4a5568;
 }
 
-.afo-slider-group label {
+.afo-stat-val {
     display: block;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.afo-card-mid p {
+    font-size: 0.95rem;
+    margin: 0.5rem 0;
+    color: #4a5568;
+}
+
+.afo-quote-btn-solid {
+    background: #e2e8f0;
+    color: #1a202c;
+    border: 1px solid #cbd5e0;
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background 0.2s;
+}
+
+.afo-quote-btn-solid:hover {
+    background: #cbd5e0;
+}
+
+/* Representative Example Grid */
+.afo-rep-example {
+    margin-top: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.afo-rep-example h4 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
     font-weight: 600;
 }
 
-input[type="range"] {
-    width: 100%;
-    accent-color: var(--afo-primary);
+.afo-rep-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 2rem;
+    font-size: 0.75rem;
 }
 
-.afo-result-row {
+.afo-rep-grid div {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 0.25rem;
 }
 
-.afo-result-row.afo-highlight {
-    border-bottom: none;
-    font-size: 1.2rem;
-    color: var(--afo-primary);
-    margin-top: 1rem;
+.afo-rep-grid strong {
+    font-weight: 600;
 }
 
-.afo-btn {
-    background: var(--afo-primary);
-    color: #fff;
-    border: none;
-    padding: 1rem;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    transition: opacity 0.2s ease;
-}
-
-.afo-btn:hover {
-    opacity: 0.9;
-}
-
-.afo-disclaimer {
-    font-size: 0.8rem;
-    color: #666;
-    text-align: center;
-    margin-top: 1rem;
-}
-
-@media (min-width: 1025px) {
-    .afo-calculator-container > div {
-        width: 50%;
-        flex: 0 0 50%;
+@media (max-width: 900px) {
+    .afo-left-col, .afo-right-col {
+        flex: 1 1 100%;
     }
-}
-
-@media (max-width: 1024px) {
-    .afo-calculator-container {
+    .afo-card-top {
         flex-direction: column;
+        text-align: center;
+    }
+    .afo-rep-grid {
+        grid-template-columns: 1fr;
     }
 }
