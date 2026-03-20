@@ -131,6 +131,27 @@ class AFO_Calculator
 		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '1.0.0');
 		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '1.0.0', true);
 
+		// Attempt standard meta key, fallback to WooCommerce default
+		$raw_price = get_post_meta($post_id, 'price', true);
+		if (empty($raw_price)) {
+			$raw_price = get_post_meta($post_id, '_price', true);
+		}
+
+		// Sanitize price strictly to float format
+		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
+		$price = ! empty($clean_price) ? floatval($clean_price) : 10000;
+
+		// Extract settings with robust fallbacks to ensure JS payload integrity
+		$api_key = get_option('afo_api_key');
+		$api_url = get_option('afo_api_url');
+
+		wp_localize_script('afo-script', 'afoConfig', [
+			'apiKey'  => $api_key,
+			'apiUrl'  => $api_url,
+			'price'   => $price,
+			'nonce'   => wp_create_nonce('afo_calc_nonce')
+		]);
+
 		// Inject dynamic CSS variables based on settings.
 		$primary_color = get_option('afo_primary_color', '#f39c12');
 		$bg_color      = get_option('afo_bg_color', '#f8f9fa');
@@ -153,7 +174,7 @@ class AFO_Calculator
 	public function render_shortcode($atts)
 	{
 		$post_id = get_the_ID();
-		
+
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta($post_id, 'price', true);
 		if (empty($raw_price)) {
@@ -173,11 +194,11 @@ class AFO_Calculator
 
 		ob_start();
 	?>
-		<div class="afo-calculator-container" 
-			 data-api-key="<?php echo esc_attr($api_key); ?>"
-			 data-api-url="<?php echo esc_url($api_url); ?>"
-			 data-price="<?php echo esc_attr($price); ?>">
-			
+		<div class="afo-calculator-container"
+			data-api-key="<?php echo esc_attr($api_key); ?>"
+			data-api-url="<?php echo esc_url($api_url); ?>"
+			data-price="<?php echo esc_attr($price); ?>">
+
 			<div class="afo-controls">
 				<div class="afo-price-header">
 					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
