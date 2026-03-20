@@ -239,7 +239,8 @@ class AFO_Calculator
 					<strong id="afo-res-monthly">£--</strong>
 				</div>
 				<button class="afo-btn" id="afo-quote-btn">Get a quote</button>
-				<p class="afo-disclaimer">Representative Example: Subject to status.</p>
+				<p class="afo-disclaimer"><strong>Representative Example</strong> </p>
+				<p class="afo-disclaimer">Cash price £15,000, deposit £0, total amount of credit £15,000, term 7 years, 84 monthly payments of £235.18, on a hire purchase agreement, option to purchase fee £1, total amount payable £19,755.46, representative APR 8.5%, rate of interest 8.5% fixed. Rates may differ as they are dependent on individual circumstances. Subject to status. </p>
 			</div>
 		</div>
 <?php
