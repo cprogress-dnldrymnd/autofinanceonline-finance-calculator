@@ -145,6 +145,7 @@ class AFO_Calculator
 
 	/**
 	 * Renders the shortcode output and injects post-specific meta data into the script localize payload.
+	 * Includes robust fallbacks for WooCommerce compatibility and unsaved options.
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string HTML output for the calculator.
@@ -154,14 +155,26 @@ class AFO_Calculator
 		$post_id = get_the_ID();
 		$raw_price = get_post_meta($post_id, 'price', true);
 
-		// NEW: Strip out commas, currency symbols, and spaces before conversion
+		// Fallback to standard WooCommerce meta key if 'price' is empty
+		if (empty($raw_price)) {
+			$raw_price = get_post_meta($post_id, '_price', true);
+		}
+
+		// Strip out commas, currency symbols, and spaces before conversion
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
 		$price = ! empty($clean_price) ? floatval($clean_price) : 10000;
 
+		// Extract settings with robust fallbacks to prevent undefined JS variables
+		$api_key = get_option('afo_api_key');
+		$api_key = ! empty($api_key) ? $api_key : '091ecf3e-ad04-47d9-94b1-043539780f16';
+
+		$api_url = get_option('afo_api_url');
+		$api_url = ! empty($api_url) ? $api_url : 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate';
+
 		// Localize script with exact configurations.
 		wp_localize_script('afo-script', 'afoConfig', [
-			'apiKey'  => get_option('afo_api_key'),
-			'apiUrl'  => get_option('afo_api_url'),
+			'apiKey'  => $api_key,
+			'apiUrl'  => $api_url,
 			'price'   => $price,
 			'nonce'   => wp_create_nonce('afo_calc_nonce')
 		]);
@@ -206,7 +219,7 @@ class AFO_Calculator
 					<strong id="afo-res-total">£--</strong>
 				</div>
 				<div class="afo-result-row afo-highlight">
-					<span><span id="afo-res-months">120</span> monthly payments of</span>
+					<span><span id="afo-res-months">60</span> monthly payments of</span>
 					<strong id="afo-res-monthly">£--</strong>
 				</div>
 				<button class="afo-btn" id="afo-quote-btn">Get a quote</button>
@@ -216,6 +229,5 @@ class AFO_Calculator
 <?php
 		return ob_get_clean();
 	}
-}
 
 new AFO_Calculator();

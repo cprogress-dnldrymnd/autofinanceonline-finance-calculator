@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Update Text Displays with localized currency formatting
-        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('afo-display-deposit').innerText = `£${parseFloat(depositSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('afo-display-borrow').innerText = `£${parseFloat(borrowSlider.value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         document.getElementById('afo-display-term').innerText = `${termSlider.value} months`;
         document.getElementById('afo-res-months').innerText = termSlider.value;
 
@@ -47,20 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Fetches quote details from the Auto Finance Online API.
-     * Implements GET parameter construction and HTTP 429 rate limit handling.
-     * * @param {number|string} deposit The current deposit amount.
-     * @param {number|string} term The repayment term in months.
-     * @return {Promise<void>}
-     */
+      * Fetches quote details from the Auto Finance Online API.
+      * Implements GET parameter construction, HTTP 429 rate limit handling,
+      * and robust error parsing for potential CORS blocks.
+      * * @param {number|string} deposit The current deposit amount.
+      * @param {number|string} term The repayment term in months.
+      * @return {Promise<void>}
+      */
     async function fetchFinanceData(deposit, term) {
         if (!afoConfig.apiKey) {
             console.error('AFO Calculator: API Key is missing from configuration.');
             return;
         }
 
-        const baseUrl = 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate';
-        
+        // Dynamically assign the URL configured in the WP admin settings
+        const baseUrl = afoConfig.apiUrl;
+
         // Construct standard URL query parameters per API specification
         const params = new URLSearchParams({
             vehicle_price: price,
@@ -84,23 +86,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // NEW: Parse the exact API error message for debugging
+            // Safely parse the exact API error message for debugging
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`AFO API Rejected Request: ${errorData.message || response.status}`);
+                let errorMsg = `HTTP ${response.status} ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) errorMsg = errorData.message;
+                } catch (e) {
+                    // Suppress parsing error if response is plain text or empty (e.g., CORS block)
+                }
+                throw new Error(`AFO API Rejected Request: ${errorMsg}`);
             }
 
             const result = await response.json();
 
+            // Enforce structure validation
             if (result.success && result.data && result.data.finance_options) {
                 // Isolate the 'excellent' tier to reflect the "Best available rate" UI pattern
                 const bestOption = result.data.finance_options.find(opt => opt.type === 'excellent');
 
                 if (bestOption) {
                     document.getElementById('afo-res-rate').innerText = `${bestOption.apr}% APR`;
-                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('afo-res-credit').innerText = `£${parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-total').innerText = `£${parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('afo-res-monthly').innerText = `£${parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
 
                 // Inject the generated tracking link into the CTA button
@@ -109,10 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.open(result.data.referrer.link, '_blank');
                     };
                 }
+            } else {
+                console.warn('AFO Calculator: Unrecognized API response structure.', result);
             }
 
         } catch (error) {
             console.error('AFO Finance API Transport Error:', error);
+            // Proactively detect network/CORS rejections
+            if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                console.error('AFO Calculator Architecture Notice: This is likely a CORS block. The target server may be rejecting cross-origin requests or the custom X-API-Key header from your domain.');
+            }
         }
     }
 
