@@ -260,14 +260,6 @@ input[type="range"]::-moz-range-thumb {
     color: var(--afo-card-text, #111111) !important;
 }
 
-.afo-results-card .afo-monthly-amount {
-    color: var(--afo-card-text, #111111) !important;
-}
-
-.afo-results-card .afo-monthly-sublabel {
-    color: var(--afo-card-muted, #555555) !important;
-}
-
 .afo-results-card .afo-monthly-circle {
     background: var(--afo-card-circle-bg, #1a1a1a);
 }
