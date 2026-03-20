@@ -86,7 +86,6 @@ class AFO_Calculator
 		register_setting('afo_style_settings', 'afo_btn_text_color');
 
 		// ── Styles — Representative Example ──────────────────────────────────
-		register_setting('afo_style_settings', 'afo_rep_bg_color');
 		register_setting('afo_style_settings', 'afo_rep_text_color');
 		register_setting('afo_style_settings', 'afo_rep_muted_color');
 		register_setting('afo_style_settings', 'afo_rep_border_color');
@@ -222,10 +221,9 @@ class AFO_Calculator
 					</table>
 
 					<!-- ── REPRESENTATIVE EXAMPLE BOX ─────────────────────────── -->
-					<h2 style="margin-top:2rem;">Representative Example Box</h2>
+					<h2 style="margin-top:2rem;">Representative Example</h2>
 					<table class="form-table">
 						<?php
-						$colour_row('Box Background',              'afo_rep_bg_color',        '#7a0000');
 						$colour_row('Row Value Text',              'afo_rep_text_color',      '#ffffff');
 						$colour_row('Row Label / Footer Text',    'afo_rep_muted_color',     '#ffcccc');
 						$colour_row('Row Divider / Border',       'afo_rep_border_color',    '#ffffff33', 'Supports 8-digit hex for transparency, e.g. #ffffff33.');
@@ -464,7 +462,6 @@ class AFO_Calculator
 			'--afo-btn-bg'         => get_option('afo_btn_bg_color',        '#ffffff'),
 			'--afo-btn-text'       => get_option('afo_btn_text_color',      '#cc2020'),
 			// Rep example
-			'--afo-rep-bg'         => get_option('afo_rep_bg_color',        '#7a0000'),
 			'--afo-rep-text'       => get_option('afo_rep_text_color',      '#ffffff'),
 			'--afo-rep-muted'      => get_option('afo_rep_muted_color',     '#ffcccc'),
 			'--afo-rep-border'     => get_option('afo_rep_border_color',    '#ffffff33'),
