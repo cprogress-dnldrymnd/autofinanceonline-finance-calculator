@@ -1,7 +1,7 @@
 /**
  * Core styling for the AFO Calculator Widget.
  * Utilizes CSS variables for administrative overriding.
- * Optimized for the 2-column card layout.
+ * Optimized for static representative layout and contrasting buttons.
  */
 
 .afo-calculator-wrapper {
@@ -51,7 +51,7 @@
     align-items: center;
     gap: 1rem;
     position: relative;
-    margin-top: 3rem; /* Space for tooltip */
+    margin-top: 3.5rem; /* Space for tooltip */
 }
 
 .afo-step-btn {
@@ -109,15 +109,17 @@ input[type="range"] {
     margin: 10px 0;
 }
 
+/* Custom "Hamburger" Slider Thumb matching screenshot */
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 32px;
-    height: 20px;
-    border-radius: 10px;
-    background: var(--afo-primary);
+    width: 36px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: var(--afo-primary);
+    background-image: linear-gradient(90deg, transparent 35%, #fff 35%, #fff 42%, transparent 42%, transparent 50%, #fff 50%, #fff 57%, transparent 57%, transparent 65%, #fff 65%, #fff 72%, transparent 72%);
     cursor: pointer;
-    background-image: linear-gradient(90deg, transparent 33%, #fff 33%, #fff 40%, transparent 40%, transparent 60%, #fff 60%, #fff 67%, transparent 67%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .afo-range-labels {
@@ -208,9 +210,10 @@ input[type="range"]::-webkit-slider-thumb {
     color: #4a5568;
 }
 
+/* Light button with custom text color */
 .afo-quote-btn-solid {
     background: #e2e8f0;
-    color: #1a202c;
+    color: var(--afo-btn-text); 
     border: 1px solid #cbd5e0;
     padding: 0.75rem 2rem;
     border-radius: 4px;
@@ -224,37 +227,23 @@ input[type="range"]::-webkit-slider-thumb {
     background: #cbd5e0;
 }
 
-/* Representative Example Grid */
+/* Static Representative Example Area */
 .afo-rep-example {
-    margin-top: 2rem;
-    background: rgba(255, 255, 255, 0.1);
+    margin-top: 1.5rem;
+    background: rgba(255, 255, 255, 0.9); /* Opaque white/grey box */
+    color: #1a202c; /* Dark text for readability */
     padding: 1.5rem;
     border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.5;
 }
 
-.afo-rep-example h4 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    opacity: 0.9;
-    font-weight: 600;
+.afo-rep-example p {
+    margin: 0 0 0.5rem 0;
 }
 
-.afo-rep-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem 2rem;
-    font-size: 0.75rem;
-}
-
-.afo-rep-grid div {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding-bottom: 0.25rem;
-}
-
-.afo-rep-grid strong {
-    font-weight: 600;
+.afo-rep-text-content {
+    color: #4a5568;
 }
 
 @media (max-width: 900px) {
@@ -264,8 +253,5 @@ input[type="range"]::-webkit-slider-thumb {
     .afo-card-top {
         flex-direction: column;
         text-align: center;
-    }
-    .afo-rep-grid {
-        grid-template-columns: 1fr;
     }
 }

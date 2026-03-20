@@ -1,17 +1,10 @@
 /**
  * Auto Finance Online Calculator Logic
- * Refactored for the 2-column Finance Example layout.
- * Strictly scoped to map only the original data points.
+ * Refactored to map strictly to the core UI elements while ignoring the static Representative box.
  */
 
 let afoInitAttempts = 0;
 
-/**
- * Initializes the primary state of the calculator.
- * Ensures DOM is fully parsed and backend configurations are injected before binding logic.
- *
- * @return {void}
- */
 function initializeAfoCalculator() {
 
     if (typeof afoConfig === 'undefined') {
@@ -33,12 +26,6 @@ function initializeAfoCalculator() {
 
     let debounceTimer;
 
-    /**
-     * Dynamically updates the position of the floating tooltips above the sliders.
-     * @param {HTMLInputElement} slider The active range input element.
-     * @param {string} tooltipId The DOM ID of the target tooltip to translate.
-     * @return {void}
-     */
     function updateTooltipPosition(slider, tooltipId) {
         const tooltip = document.getElementById(tooltipId);
         if (!tooltip) return;
@@ -51,11 +38,6 @@ function initializeAfoCalculator() {
         tooltip.style.left = `calc(${percentage}%)`;
     }
 
-    /**
-     * Synchronizes the invisible 'borrow' mathematically with the user's deposit, updates UI, and triggers API.
-     * @param {Event|Object} e The input event object.
-     * @return {void}
-     */
     function syncSliders(e) {
         if (e && e.target && e.target.id === 'afo-deposit') {
             borrowSlider.value = price - parseFloat(depositSlider.value);
@@ -66,25 +48,18 @@ function initializeAfoCalculator() {
         const termYears = parseFloat(termSlider.value);
         const termMonths = Math.round(termYears * 12);
 
-        // Update Tooltip Text and Positioning
         document.getElementById('afo-tooltip-deposit').innerText = `£${exactDeposit.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
         updateTooltipPosition(depositSlider, 'afo-tooltip-deposit');
 
         document.getElementById('afo-tooltip-term').innerText = `${termYears} year${termYears === 1 ? '' : 's'}`;
         updateTooltipPosition(termSlider, 'afo-tooltip-term');
 
-        // Update Rep Example placeholders immediately based on the current mathematical state
-        document.getElementById('rep-price').innerText = `£${price.toLocaleString('en-GB')}`;
-        document.getElementById('rep-deposit').innerText = `£${exactDeposit.toLocaleString('en-GB')}`;
         document.getElementById('afo-res-borrowing').innerText = `£${currentBorrow.toLocaleString('en-GB')}`;
         document.getElementById('afo-res-plan-months').innerText = termMonths;
 
         triggerApiCall(exactDeposit, termYears);
     }
 
-    /**
-     * Stepper functionality for the < and > increment buttons.
-     */
     document.querySelectorAll('.afo-step-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = e.target.getAttribute('data-target');
@@ -104,11 +79,6 @@ function initializeAfoCalculator() {
         });
     });
 
-    /**
-     * Debounces the API call to mitigate rate limits during fast slider manipulation.
-     * @param {number} exactDeposit 
-     * @param {number} termYears 
-     */
     function triggerApiCall(exactDeposit, termYears) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
@@ -116,13 +86,6 @@ function initializeAfoCalculator() {
         }, 500); 
     }
 
-    /**
-     * Fetches quote details from the Auto Finance Online API.
-     * Maps the response payload strictly to the original DOM elements requested.
-     * @param {number|string} deposit 
-     * @param {number|string} termYears 
-     * @return {Promise<void>}
-     */
     async function fetchFinanceData(deposit, termYears) {
         if (!afoConfig.apiKey) return;
 
@@ -159,19 +122,12 @@ function initializeAfoCalculator() {
 
                 if (bestOption) {
                     const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
-                    
-                    // Format numeric values
-                    const monthly = parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const total = parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const interest = parseFloat(bestOption.cost_of_credit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const monthly = parseFloat(bestOption.monthly_cost).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    const total = parseFloat(bestOption.total_repayable).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-                    // Output to DOM elements (scoped to original requirements)
                     document.getElementById('afo-res-monthly').innerText = `£${monthly}`;
                     document.getElementById('afo-res-total').innerText = `£${total}`;
-                    document.getElementById('afo-res-rate').innerText = `${aprValue}% APR`;
-                    
-                    const interestEl = document.getElementById('afo-res-credit');
-                    if (interestEl) interestEl.innerText = `£${interest}`;
+                    document.getElementById('afo-res-rate').innerText = `${aprValue}%`;
                 }
 
                 if (result.data.referrer && result.data.referrer.link) {
