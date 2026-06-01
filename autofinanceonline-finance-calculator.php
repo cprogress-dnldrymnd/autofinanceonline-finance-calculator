@@ -445,7 +445,8 @@ class AFO_Calculator
 		}
 
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
-		$price       = ! empty($clean_price) ? floatval($clean_price) : 10000;
+		// Default to 100,000 if no price meta is found
+		$price       = ! empty($clean_price) ? floatval($clean_price) : 100000;
 
 		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
 		$api_url = get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate');
@@ -522,8 +523,13 @@ class AFO_Calculator
 		if (empty($raw_price)) {
 			$raw_price = get_post_meta($post_id, '_price', true);
 		}
+        
+        // Determine if we are on a listing page based on the presence of a price
+        $is_listing_page = ! empty($raw_price);
+
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
-		$price       = ! empty($clean_price) ? floatval($clean_price) : 10000;
+        // Default to 100,000 if no price meta is found
+		$price       = ! empty($clean_price) ? floatval($clean_price) : 100000;
 
 		// API settings with robust fallbacks
 		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
@@ -561,15 +567,14 @@ class AFO_Calculator
 			data-api-url="<?php echo esc_url($api_url); ?>"
 			data-price="<?php echo esc_attr($price); ?>">
 
-			<!-- ═══════════════════════════════════════
-			     LEFT PANEL — CONTROLS
-			════════════════════════════════════════ -->
 			<div class="afo-controls">
 
 				<h2 class="afo-controls-heading"><?php echo esc_html($left_heading); ?></h2>
 
 				<div class="afo-price-header">
-					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
+                    <?php if ( $is_listing_page ) : ?>
+					    <h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
+                    <?php endif; ?>
 					<p>With a deposit of <span id="afo-display-deposit">£0.00</span>,
 						balance to finance: <span id="afo-display-borrow">£<?php echo number_format($price, 2); ?></span></p>
 				</div>
