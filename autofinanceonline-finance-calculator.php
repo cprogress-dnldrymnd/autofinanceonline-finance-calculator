@@ -195,7 +195,6 @@ class AFO_Calculator
 					};
 				?>
 
-					<!-- ── LEFT PANEL ─────────────────────────────────────────── -->
 					<h2 style="margin-top:1.5rem;">Left Panel</h2>
 					<table class="form-table">
 						<?php
@@ -213,7 +212,6 @@ class AFO_Calculator
 						?>
 					</table>
 
-					<!-- ── RIGHT PANEL ────────────────────────────────────────── -->
 					<h2 style="margin-top:2rem;">Right Panel</h2>
 					<table class="form-table">
 						<?php
@@ -226,7 +224,6 @@ class AFO_Calculator
 						?>
 					</table>
 
-					<!-- ── INNER CARD ─────────────────────────────────────────── -->
 					<h2 style="margin-top:2rem;">Inner Card <small>(hero stats area)</small></h2>
 					<table class="form-table">
 						<?php
@@ -237,7 +234,6 @@ class AFO_Calculator
 						?>
 					</table>
 
-					<!-- ── REPRESENTATIVE EXAMPLE BOX ─────────────────────────── -->
 					<h2 style="margin-top:2rem;">Representative Example</h2>
 					<table class="form-table">
 						<?php
@@ -445,7 +441,9 @@ class AFO_Calculator
 		}
 
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
-		$price       = ! empty($clean_price) ? floatval($clean_price) : 10000;
+		$has_price   = ! empty($clean_price);
+		// Default to 100000 if not a single listing page (no price found)
+		$price       = $has_price ? floatval($clean_price) : 100000;
 
 		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
 		$api_url = get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate');
@@ -523,7 +521,10 @@ class AFO_Calculator
 			$raw_price = get_post_meta($post_id, '_price', true);
 		}
 		$clean_price = preg_replace('/[^0-9.]/', '', $raw_price);
-		$price       = ! empty($clean_price) ? floatval($clean_price) : 10000;
+		$has_price   = ! empty($clean_price);
+		
+		// Default to 100000 if not a single listing page (no price found)
+		$price       = $has_price ? floatval($clean_price) : 100000;
 
 		// API settings with robust fallbacks
 		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
@@ -561,20 +562,18 @@ class AFO_Calculator
 			data-api-url="<?php echo esc_url($api_url); ?>"
 			data-price="<?php echo esc_attr($price); ?>">
 
-			<!-- ═══════════════════════════════════════
-			     LEFT PANEL — CONTROLS
-			════════════════════════════════════════ -->
 			<div class="afo-controls">
 
 				<h2 class="afo-controls-heading"><?php echo esc_html($left_heading); ?></h2>
 
 				<div class="afo-price-header">
+					<?php if ( $has_price ) : ?>
 					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
+					<?php endif; ?>
 					<p>With a deposit of <span id="afo-display-deposit">£0.00</span>,
 						balance to finance: <span id="afo-display-borrow">£<?php echo number_format($price, 2); ?></span></p>
 				</div>
 
-				<!-- DEPOSIT SLIDER -->
 				<div class="afo-slider-group">
 					<span class="afo-slider-label"><?php echo esc_html($deposit_label); ?></span>
 					<?php if (! empty($deposit_sublabel)) : ?>
@@ -600,7 +599,6 @@ class AFO_Calculator
 					</div>
 				</div>
 
-				<!-- BORROW SLIDER -->
 				<div class="afo-slider-group">
 					<span class="afo-slider-label"><?php echo esc_html($borrow_label); ?></span>
 					<?php if (! empty($borrow_sublabel)) : ?>
@@ -626,7 +624,6 @@ class AFO_Calculator
 					</div>
 				</div>
 
-				<!-- TERM SLIDER -->
 				<div class="afo-slider-group">
 					<span class="afo-slider-label"><?php echo esc_html($term_label); ?></span>
 					<?php if (! empty($term_sublabel)) : ?>
@@ -653,21 +650,13 @@ class AFO_Calculator
 					</div>
 				</div>
 
-			</div><!-- /afo-controls -->
-
-			<!-- ═══════════════════════════════════════
-			     RIGHT PANEL — RESULTS
-			════════════════════════════════════════ -->
-			<div class="afo-results">
+			</div><div class="afo-results">
 
 				<h3 class="afo-results-heading"><?php echo esc_html($right_heading); ?></h3>
 
-				<!-- Inner card: white background by default -->
 				<div class="afo-results-card">
 
-					<!-- Hero: circle + key figures -->
 					<div class="afo-main-results">
-						<!-- ── Loading overlay ───────────────────────────────────── -->
 						<div class="afo-loading-overlay" id="afo-loading-overlay" aria-hidden="true">
 							<div class="afo-spinner"></div>
 							<span class="afo-loading-label">Calculating&hellip;</span>
@@ -678,7 +667,6 @@ class AFO_Calculator
 								<span class="afo-monthly-sublabel"><?php echo esc_html($monthly_sublabel); ?></span>
 							</div>
 							<div class="afo-hero-stats">
-								<!-- Total cost of credit is intentionally ABOVE total amount payable per spec -->
 								<div class="afo-hero-stat-row">
 									<div class="afo-hero-stat">
 										<span class="stat-label">Total cost of credit</span>
@@ -709,7 +697,6 @@ class AFO_Calculator
 
 
 
-					<!-- Representative Example table -->
 					<div class="afo-rep-example">
 						<div class="afo-rep-heading">Representative Example</div>
 						<div class="afo-rep-grid">
@@ -759,12 +746,7 @@ class AFO_Calculator
 						<?php endif; ?>
 					</div>
 
-				</div><!-- /afo-results-card -->
-
-			</div><!-- /afo-results -->
-
-		</div><!-- /afo-calculator-container -->
-<?php
+				</div></div></div><?php
 		return ob_get_clean();
 	}
 }
