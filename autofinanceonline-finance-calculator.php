@@ -505,8 +505,8 @@ class AFO_Calculator
 
 	/**
 	 * Renders the calculator shortcode with the redesigned two-panel layout.
-	 * Configuration is embedded via HTML5 data attributes to prevent race
-	 * conditions in deferred JS environments.
+	 * Default values are dynamically calculated to reflect a 20% deposit 
+	 * and a 120-month (10-year) repayment term.
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string HTML output.
@@ -525,6 +525,12 @@ class AFO_Calculator
 		
 		// Default to 100000 if not a single listing page (no price found)
 		$price       = $has_price ? floatval($clean_price) : 100000;
+
+		// Calculate requested defaults: 20% deposit, 10-year (120 months) term
+		$default_deposit     = $price * 0.20;
+		$default_borrow      = $price - $default_deposit;
+		$default_term_years  = 10;
+		$default_term_months = 120;
 
 		// API settings with robust fallbacks
 		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
@@ -570,8 +576,8 @@ class AFO_Calculator
 					<?php if ( $has_price ) : ?>
 					<h3>Vehicle price: <span id="afo-display-price">£<?php echo number_format($price, 2); ?></span></h3>
 					<?php endif; ?>
-					<p>With a deposit of <span id="afo-display-deposit">£0.00</span>,
-						balance to finance: <span id="afo-display-borrow">£<?php echo number_format($price, 2); ?></span></p>
+					<p>With a deposit of <span id="afo-display-deposit">£<?php echo number_format($default_deposit, 2); ?></span>,
+						balance to finance: <span id="afo-display-borrow">£<?php echo number_format($default_borrow, 2); ?></span></p>
 				</div>
 
 				<div class="afo-slider-group">
@@ -583,11 +589,11 @@ class AFO_Calculator
 						<button class="afo-arrow-btn" type="button" data-target="afo-deposit" data-dir="-1"
 							aria-label="Decrease deposit">&#8249;</button>
 						<div class="afo-slider-inner">
-							<div class="afo-bubble" id="afo-bubble-deposit">£0.00</div>
+							<div class="afo-bubble" id="afo-bubble-deposit">£<?php echo number_format($default_deposit, 2); ?></div>
 							<input type="range" id="afo-deposit"
 								min="0"
 								max="<?php echo esc_attr($price); ?>"
-								value="0"
+								value="<?php echo esc_attr($default_deposit); ?>"
 								step="100">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-deposit" data-dir="1"
@@ -608,11 +614,11 @@ class AFO_Calculator
 						<button class="afo-arrow-btn" type="button" data-target="afo-borrow" data-dir="-1"
 							aria-label="Decrease borrow amount">&#8249;</button>
 						<div class="afo-slider-inner">
-							<div class="afo-bubble" id="afo-bubble-borrow">£<?php echo number_format($price, 2); ?></div>
+							<div class="afo-bubble" id="afo-bubble-borrow">£<?php echo number_format($default_borrow, 2); ?></div>
 							<input type="range" id="afo-borrow"
 								min="0"
 								max="<?php echo esc_attr($price); ?>"
-								value="<?php echo esc_attr($price); ?>"
+								value="<?php echo esc_attr($default_borrow); ?>"
 								step="100">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-borrow" data-dir="1"
@@ -633,11 +639,11 @@ class AFO_Calculator
 						<button class="afo-arrow-btn" type="button" data-target="afo-term" data-dir="-1"
 							aria-label="Decrease term">&#8249;</button>
 						<div class="afo-slider-inner">
-							<div class="afo-bubble" id="afo-bubble-term">5 years</div>
+							<div class="afo-bubble" id="afo-bubble-term"><?php echo esc_attr($default_term_years); ?> years</div>
 							<input type="range" id="afo-term"
 								min="2"
 								max="10"
-								value="5"
+								value="<?php echo esc_attr($default_term_years); ?>"
 								step="0.5">
 						</div>
 						<button class="afo-arrow-btn" type="button" data-target="afo-term" data-dir="1"
@@ -645,7 +651,7 @@ class AFO_Calculator
 					</div>
 					<div class="afo-slider-range-labels">
 						<span>2 years</span>
-						<span id="afo-display-term">5 years</span>
+						<span id="afo-display-term"><?php echo esc_attr($default_term_years); ?> years</span>
 						<span>10 years</span>
 					</div>
 				</div>
@@ -684,8 +690,8 @@ class AFO_Calculator
 									</div>
 								</div>
 								<div class="afo-hero-info">
-									Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($price, 2); ?></span></strong><br>
-									Amount based on <strong><span id="afo-res-months">60</span> month</strong> repayment plan.
+									Requested borrowing value: <strong><span id="afo-info-borrow">£<?php echo number_format($default_borrow, 2); ?></span></strong><br>
+									Amount based on <strong><span id="afo-res-months"><?php echo esc_attr($default_term_months); ?></span> month</strong> repayment plan.
 								</div>
 							</div>
 						</div>
