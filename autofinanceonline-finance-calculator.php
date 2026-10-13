@@ -375,9 +375,6 @@ class AFO_Calculator
 			$monthly       = $this->calculate_monthly_payment($credit, $override_pct, $months);
 			// Match AFO total_repayable semantics: sum of instalments on the credit.
 			$total_payable = $monthly * $months;
-			if ($purchase_fee > 0) {
-				$total_payable += $purchase_fee;
-			}
 		}
 
 		$monthly_display = ($months > 0 && $monthly > 0)
