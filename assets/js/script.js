@@ -129,8 +129,8 @@ function initializeAfoCalculator() {
     }
 
     /**
-     * Monthly instalment using UK-style equivalent APR
-     * (periodic rate i where APR = (1+i)^12 - 1).
+     * Monthly instalment using nominal APR / 12.
+     * Monthly rate r = (APR / 100) / 12.
      *
      * @param {number} principal Loan amount.
      * @param {number} aprPercent APR percentage (e.g. 8.9).
@@ -144,9 +144,9 @@ function initializeAfoCalculator() {
         if (!(p > 0) || !(n > 0)) return 0;
         if (!(apr > 0)) return p / n;
 
-        const i = Math.pow(1 + (apr / 100), 1 / 12) - 1;
-        const factor = Math.pow(1 + i, n);
-        return p * i * factor / (factor - 1);
+        const r = (apr / 100) / 12;
+        const factor = Math.pow(1 + r, n);
+        return p * r * factor / (factor - 1);
     }
 
     // Cache bubble elements
@@ -321,7 +321,7 @@ function initializeAfoCalculator() {
 
                     // Admin override: replace APR and recalculate payment figures locally.
                     if (overrideOn && overridePct !== null && borrowAmount > 0 && termMonths > 0) {
-                        monthlyCost = calculateMonthlyPayment(borrowAmount, overridePct, termMonths);
+                        monthlyCost = Math.round(calculateMonthlyPayment(borrowAmount, overridePct, termMonths) * 100) / 100;
                         totalRepayable = monthlyCost * termMonths;
                         costOfCredit = Math.max(0, totalRepayable - borrowAmount);
                         aprValue = overridePct;
