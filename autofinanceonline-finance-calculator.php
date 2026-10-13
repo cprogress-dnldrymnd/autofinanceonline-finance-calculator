@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.3.1
+ * Version:     2.3.2
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -170,6 +170,48 @@ class AFO_Calculator
 	}
 
 	/**
+	 * Parses an APR string such as "8.9%" or "8.9" into a percentage float.
+	 *
+	 * @param mixed $value Raw APR value.
+	 * @return float|null Null when no numeric APR can be read.
+	 */
+	private function parse_apr_percent($value)
+	{
+		if (preg_match('/([\d.]+)/', (string) $value, $matches)) {
+			return (float) $matches[1];
+		}
+		return null;
+	}
+
+	/**
+	 * Calculates a monthly instalment using UK-style equivalent APR.
+	 * Periodic rate i satisfies APR = (1+i)^12 - 1.
+	 *
+	 * @param float $principal Loan amount.
+	 * @param float $apr_percent APR as a percentage (e.g. 8.9).
+	 * @param int   $months     Number of monthly payments.
+	 * @return float
+	 */
+	private function calculate_monthly_payment($principal, $apr_percent, $months)
+	{
+		$principal   = (float) $principal;
+		$apr_percent = (float) $apr_percent;
+		$months      = (int) $months;
+
+		if ($principal <= 0 || $months <= 0) {
+			return 0.0;
+		}
+		if ($apr_percent <= 0) {
+			return $principal / $months;
+		}
+
+		$i = pow(1 + ($apr_percent / 100), 1 / 12) - 1;
+		$factor = pow(1 + $i, $months);
+
+		return $principal * $i * $factor / ($factor - 1);
+	}
+
+	/**
 	 * Picks the preferred finance option from an AFO API response payload.
 	 * Prefers type "excellent" when present, otherwise the first option.
 	 *
@@ -321,6 +363,23 @@ class AFO_Calculator
 			}
 		}
 
+		// Optional admin override replaces API APR and recalculates monthly /
+		// total payable for the representative example (and live results via JS).
+		$override_apr = (int) get_option('afo_override_api_apr', 0) === 1;
+		$rep_apr_raw  = trim((string) get_option('afo_rep_apr', ''));
+		$override_pct = $this->parse_apr_percent($rep_apr_raw);
+		$purchase_fee = $this->parse_money($purchase_fee_raw);
+
+		if ($override_apr && $override_pct !== null && $months > 0 && $credit > 0) {
+			$apr           = $override_pct;
+			$monthly       = $this->calculate_monthly_payment($credit, $override_pct, $months);
+			// Match AFO total_repayable semantics: sum of instalments on the credit.
+			$total_payable = $monthly * $months;
+			if ($purchase_fee > 0) {
+				$total_payable += $purchase_fee;
+			}
+		}
+
 		$monthly_display = ($months > 0 && $monthly > 0)
 			? sprintf('%d monthly payments of %s', $months, $this->format_money($monthly))
 			: ($monthly > 0 ? $this->format_money($monthly) : '—');
@@ -333,16 +392,6 @@ class AFO_Calculator
 			? rtrim(rtrim(number_format($apr, 2, '.', ''), '0'), '.') . '% fixed'
 			: '—';
 
-		// Optional admin override replaces API APR in the representative example
-		// (and, via afoConfig, in the live results badge).
-		$override_apr = (int) get_option('afo_override_api_apr', 0) === 1;
-		$rep_apr_raw  = trim((string) get_option('afo_rep_apr', ''));
-		if ($override_apr && $rep_apr_raw !== '') {
-			$normalized_apr   = rtrim($rep_apr_raw, " \t%") . '%';
-			$apr_display      = $normalized_apr;
-			$interest_display = rtrim($rep_apr_raw, " \t%") . '% fixed';
-		}
-
 		return [
 			'cash_price'    => is_string($cash_price_raw) && $cash_price_raw !== '' ? $cash_price_raw : $this->format_money($cash_price),
 			'deposit'       => is_string($deposit_raw) && $deposit_raw !== '' ? $deposit_raw : $this->format_money($deposit),
@@ -350,7 +399,7 @@ class AFO_Calculator
 			'term'          => is_string($term_raw) && $term_raw !== '' ? $term_raw : ($term_years . ' years'),
 			'monthly'       => $monthly_display,
 			'agreement'     => get_option('afo_rep_agreement', 'Hire purchase agreement'),
-			'purchase_fee'  => is_string($purchase_fee_raw) && $purchase_fee_raw !== '' ? $purchase_fee_raw : $this->format_money($this->parse_money($purchase_fee_raw)),
+			'purchase_fee'  => is_string($purchase_fee_raw) && $purchase_fee_raw !== '' ? $purchase_fee_raw : $this->format_money($purchase_fee),
 			'total_payable' => $total_payable > 0 ? $this->format_money($total_payable) : '—',
 			'apr'           => $apr_display,
 			'interest'      => $interest_display,
@@ -634,7 +683,7 @@ class AFO_Calculator
 										<?php checked(1, (int) get_option('afo_override_api_apr', 0)); ?> />
 									Override AFO API APR in live calculator and Representative Example
 								</label>
-								<p class="description">When enabled, the live results-card APR and the Representative Example APR/interest use the override value below instead of the API rate. Monthly payment and totals still come from the API.</p>
+								<p class="description">When enabled, the live results card and Representative Example use this APR, and monthly payment / total payable are recalculated from it. The Get a quote link still uses Auto Finance Online.</p>
 							</td>
 						</tr>
 						<tr>
@@ -648,8 +697,8 @@ class AFO_Calculator
 						</tr>
 					</table>
 
-					<h2 style="margin-top:2rem;">Calculated from AFO API</h2>
-					<p class="description">Read-only preview using the saved Cash Price, Deposit, and Finance Term above. Save changes first to refresh. APR rows reflect the override when it is enabled.</p>
+					<h2 style="margin-top:2rem;">Calculated preview</h2>
+					<p class="description">Read-only preview using the saved Cash Price, Deposit, and Finance Term above. Save changes first to refresh. When APR override is enabled, monthly payment, total payable, APR, and interest are recalculated from the override value.</p>
 					<table class="form-table">
 						<tr>
 							<th scope="row">Loan Amount</th>
@@ -689,8 +738,8 @@ class AFO_Calculator
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.3.1');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.3.1', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.3.2');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.3.2', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);

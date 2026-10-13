@@ -105,6 +105,50 @@ function initializeAfoCalculator() {
         return y + ' year' + (y === 1 ? '' : 's');
     }
 
+    /**
+     * Whether the admin APR override is enabled in afoConfig.
+     * @return {boolean}
+     */
+    function isAprOverrideOn() {
+        return afoConfig.overrideApiApr === true
+            || afoConfig.overrideApiApr === 1
+            || afoConfig.overrideApiApr === '1';
+    }
+
+    /**
+     * Parses the configured override APR percentage from afoConfig.repApr.
+     * @return {number|null}
+     */
+    function getOverrideAprPercent() {
+        const repApr = (afoConfig.repApr || '').toString().trim();
+        if (!repApr) return null;
+        const match = repApr.match(/([\d.]+)/);
+        if (!match) return null;
+        const pct = parseFloat(match[1]);
+        return isNaN(pct) ? null : pct;
+    }
+
+    /**
+     * Monthly instalment using UK-style equivalent APR
+     * (periodic rate i where APR = (1+i)^12 - 1).
+     *
+     * @param {number} principal Loan amount.
+     * @param {number} aprPercent APR percentage (e.g. 8.9).
+     * @param {number} months Number of months.
+     * @return {number}
+     */
+    function calculateMonthlyPayment(principal, aprPercent, months) {
+        const p = parseFloat(principal);
+        const apr = parseFloat(aprPercent);
+        const n = Math.round(parseFloat(months));
+        if (!(p > 0) || !(n > 0)) return 0;
+        if (!(apr > 0)) return p / n;
+
+        const i = Math.pow(1 + (apr / 100), 1 / 12) - 1;
+        const factor = Math.pow(1 + i, n);
+        return p * i * factor / (factor - 1);
+    }
+
     // Cache bubble elements
     const bubbleDeposit = document.getElementById('afo-bubble-deposit');
     const bubbleBorrow = document.getElementById('afo-bubble-borrow');
@@ -265,31 +309,42 @@ function initializeAfoCalculator() {
                 if (!bestOption) bestOption = options[0];
 
                 if (bestOption) {
-                    // APR — admin override replaces API value; label in HTML already reads "APR"
+                    const overrideOn = isAprOverrideOn();
+                    const overridePct = getOverrideAprPercent();
+                    const termMonths = Math.round(parseFloat(termYears) * 12);
+                    const borrowAmount = parseFloat(borrowSlider.value);
+
+                    let monthlyCost = bestOption.monthly_cost;
+                    let totalRepayable = bestOption.total_repayable;
+                    let costOfCredit = bestOption.cost_of_credit;
+                    let aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
+
+                    // Admin override: replace APR and recalculate payment figures locally.
+                    if (overrideOn && overridePct !== null && borrowAmount > 0 && termMonths > 0) {
+                        monthlyCost = calculateMonthlyPayment(borrowAmount, overridePct, termMonths);
+                        totalRepayable = monthlyCost * termMonths;
+                        costOfCredit = Math.max(0, totalRepayable - borrowAmount);
+                        aprValue = overridePct;
+                    }
+
                     const resRate = document.getElementById('afo-res-rate');
                     if (resRate) {
-                        const overrideOn = afoConfig.overrideApiApr === true
-                            || afoConfig.overrideApiApr === 1
-                            || afoConfig.overrideApiApr === '1';
-                        const repApr = (afoConfig.repApr || '').toString().trim();
-
-                        if (overrideOn && repApr) {
-                            const normalized = repApr.replace(/%+\s*$/, '').trim();
-                            resRate.innerText = normalized + '%';
+                        if (aprValue === '--') {
+                            resRate.innerText = '--%';
                         } else {
-                            const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
-                            resRate.innerText = aprValue + '%';
+                            const normalized = String(aprValue).replace(/%+\s*$/, '').trim();
+                            resRate.innerText = normalized + '%';
                         }
                     }
 
                     const resCredit = document.getElementById('afo-res-credit');
-                    if (resCredit) resCredit.innerText = fmtGBP(bestOption.cost_of_credit);
+                    if (resCredit) resCredit.innerText = fmtGBP(costOfCredit);
 
                     const resTotal = document.getElementById('afo-res-total');
-                    if (resTotal) resTotal.innerText = fmtGBP(bestOption.total_repayable);
+                    if (resTotal) resTotal.innerText = fmtGBP(totalRepayable);
 
                     const resMonthly = document.getElementById('afo-res-monthly');
-                    if (resMonthly) resMonthly.innerText = fmtGBP(bestOption.monthly_cost);
+                    if (resMonthly) resMonthly.innerText = fmtGBP(monthlyCost);
                 }
 
                 // Wire quote button to referrer link with current slider params appended
