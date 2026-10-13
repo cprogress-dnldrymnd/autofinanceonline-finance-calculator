@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.1.0
+ * Version:     2.1.1
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -118,6 +118,13 @@ class AFO_Calculator
 		register_setting('afo_rep_settings', 'afo_rep_purchase_fee');
 		register_setting('afo_rep_settings', 'afo_rep_total_payable');
 		register_setting('afo_rep_settings', 'afo_rep_apr');
+		register_setting('afo_rep_settings', 'afo_override_api_apr', [
+			'type'              => 'boolean',
+			'sanitize_callback' => static function ($value) {
+				return ! empty($value) ? 1 : 0;
+			},
+			'default'           => 0,
+		]);
 		register_setting('afo_rep_settings', 'afo_rep_interest');
 		register_setting('afo_rep_settings', 'afo_rep_footer');
 	}
@@ -341,7 +348,8 @@ class AFO_Calculator
 					settings_fields('afo_rep_settings');
 				?>
 					<p class="description" style="margin-bottom:1rem;">
-						These static fields populate the Representative Example table shown on the right panel.
+						These fields populate the Representative Example table on the right panel.
+						Representative APR always appears in that table; enable the override below to also replace the live calculator APR from the Auto Finance Online API.
 					</p>
 					<table class="form-table">
 						<tr>
@@ -397,15 +405,33 @@ class AFO_Calculator
 						</tr>
 						<tr>
 							<th scope="row">Representative APR</th>
-							<td><input type="text" name="afo_rep_apr"
+							<td>
+								<input type="text" name="afo_rep_apr"
 									value="<?php echo esc_attr(get_option('afo_rep_apr', '8.5%')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">Shown in the Representative Example table. Used for the live results APR when the override below is enabled.</p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">Override AFO API APR</th>
+							<td>
+								<label for="afo_override_api_apr">
+									<input type="hidden" name="afo_override_api_apr" value="0" />
+									<input type="checkbox" name="afo_override_api_apr" id="afo_override_api_apr" value="1"
+										<?php checked(1, (int) get_option('afo_override_api_apr', 0)); ?> />
+									Override AFO API APR in live calculator
+								</label>
+								<p class="description">When enabled, the live results-card APR shows Representative APR instead of the rate returned by the API. Monthly payment and totals still come from the API.</p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row">Rate of Interest</th>
-							<td><input type="text" name="afo_rep_interest"
+							<td>
+								<input type="text" name="afo_rep_interest"
 									value="<?php echo esc_attr(get_option('afo_rep_interest', '8.5% fixed')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">Keep this aligned with Representative APR (e.g. "8.9% fixed").</p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row">Footer Notice</th>
@@ -431,8 +457,8 @@ class AFO_Calculator
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.1.0');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.1.0', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.1.1');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.1.1', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);
@@ -449,10 +475,12 @@ class AFO_Calculator
 		$api_url = get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate');
 
 		wp_localize_script('afo-script', 'afoConfig', [
-			'apiKey' => $api_key,
-			'apiUrl' => $api_url,
-			'price'  => $price,
-			'nonce'  => wp_create_nonce('afo_calc_nonce'),
+			'apiKey'         => $api_key,
+			'apiUrl'         => $api_url,
+			'price'          => $price,
+			'nonce'          => wp_create_nonce('afo_calc_nonce'),
+			'overrideApiApr' => (int) get_option('afo_override_api_apr', 0) === 1,
+			'repApr'         => get_option('afo_rep_apr', '8.5%'),
 		]);
 
 		// ── Collect all colour options ────────────────────────────────────────

@@ -265,11 +265,22 @@ function initializeAfoCalculator() {
                 if (!bestOption) bestOption = options[0];
 
                 if (bestOption) {
-                    const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
-
-                    // APR — show value only; the label in HTML already reads "APR"
+                    // APR — admin override replaces API value; label in HTML already reads "APR"
                     const resRate = document.getElementById('afo-res-rate');
-                    if (resRate) resRate.innerText = aprValue + '%';
+                    if (resRate) {
+                        const overrideOn = afoConfig.overrideApiApr === true
+                            || afoConfig.overrideApiApr === 1
+                            || afoConfig.overrideApiApr === '1';
+                        const repApr = (afoConfig.repApr || '').toString().trim();
+
+                        if (overrideOn && repApr) {
+                            const normalized = repApr.replace(/%+\s*$/, '').trim();
+                            resRate.innerText = normalized + '%';
+                        } else {
+                            const aprValue = bestOption.apr !== undefined ? bestOption.apr : '--';
+                            resRate.innerText = aprValue + '%';
+                        }
+                    }
 
                     const resCredit = document.getElementById('afo-res-credit');
                     if (resCredit) resCredit.innerText = fmtGBP(bestOption.cost_of_credit);
