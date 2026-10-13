@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.3.3
+ * Version:     2.3.4
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -184,8 +184,8 @@ class AFO_Calculator
 	}
 
 	/**
-	 * Calculates a monthly instalment using nominal APR / 12.
-	 * Monthly rate r = (APR / 100) / 12.
+	 * Calculates a monthly instalment using UK-style equivalent APR.
+	 * Periodic rate i satisfies APR = (1+i)^12 - 1 (matches AFO API).
 	 *
 	 * @param float $principal Loan amount.
 	 * @param float $apr_percent APR as a percentage (e.g. 8.9).
@@ -205,10 +205,10 @@ class AFO_Calculator
 			return $principal / $months;
 		}
 
-		$r = ($apr_percent / 100) / 12;
-		$factor = pow(1 + $r, $months);
+		$i = pow(1 + ($apr_percent / 100), 1 / 12) - 1;
+		$factor = pow(1 + $i, $months);
 
-		return $principal * $r * $factor / ($factor - 1);
+		return $principal * $i * $factor / ($factor - 1);
 	}
 
 	/**
@@ -372,9 +372,10 @@ class AFO_Calculator
 
 		if ($override_apr && $override_pct !== null && $months > 0 && $credit > 0) {
 			$apr           = $override_pct;
-			$monthly       = round($this->calculate_monthly_payment($credit, $override_pct, $months), 2);
-			// Rounded monthly × term, plus option-to-purchase fee (matches sent examples).
-			$total_payable = ($monthly * $months) + $purchase_fee;
+			$monthly_exact = $this->calculate_monthly_payment($credit, $override_pct, $months);
+			$monthly       = round($monthly_exact, 2);
+			// Match AFO total_repayable: sum of instalments only (no purchase fee).
+			$total_payable = round($monthly_exact * $months, 2);
 		}
 
 		$monthly_display = ($months > 0 && $monthly > 0)
@@ -735,8 +736,8 @@ class AFO_Calculator
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.3.3');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.3.3', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.3.4');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.3.4', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);
