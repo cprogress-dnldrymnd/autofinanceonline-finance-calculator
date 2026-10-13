@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.2.0
+ * Version:     2.3.0
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -109,15 +109,13 @@ class AFO_Calculator
 		register_setting('afo_label_settings', 'afo_monthly_sublabel');
 
 		// ── Representative Example ────────────────────────────────────────────
-		// Credit, monthly payment copy, and total payable are derived at render time.
+		// Monthly payment, loan amount, total payable, APR, and interest rate
+		// are calculated from the AFO API using cash price / deposit / term.
 		register_setting('afo_rep_settings', 'afo_rep_cash_price');
 		register_setting('afo_rep_settings', 'afo_rep_deposit');
 		register_setting('afo_rep_settings', 'afo_rep_term');
-		register_setting('afo_rep_settings', 'afo_rep_monthly'); // monthly payment amount only
 		register_setting('afo_rep_settings', 'afo_rep_agreement');
 		register_setting('afo_rep_settings', 'afo_rep_purchase_fee');
-		register_setting('afo_rep_settings', 'afo_rep_apr');
-		register_setting('afo_rep_settings', 'afo_rep_interest');
 		register_setting('afo_rep_settings', 'afo_rep_footer');
 	}
 
@@ -164,23 +162,108 @@ class AFO_Calculator
 	}
 
 	/**
-	 * Extracts the monthly payment amount from either a plain money string
-	 * ("£235.18") or a legacy full phrase ("84 monthly payments of £235.18").
+	 * Picks the preferred finance option from an AFO API response payload.
+	 * Prefers type "excellent" when present, otherwise the first option.
 	 *
-	 * @param mixed $value Raw option value.
-	 * @return float
+	 * @param array $result Decoded API JSON body.
+	 * @return array|null
 	 */
-	private function parse_monthly_amount($value)
+	private function pick_finance_option(array $result)
 	{
-		$value = (string) $value;
-		if (preg_match('/of\s*(£?[\d,.]+)/i', $value, $matches)) {
-			return $this->parse_money($matches[1]);
+		if (empty($result['success']) || empty($result['data']['finance_options']) || ! is_array($result['data']['finance_options'])) {
+			return null;
 		}
-		return $this->parse_money($value);
+
+		$options = $result['data']['finance_options'];
+		foreach ($options as $option) {
+			if (! empty($option['type']) && strtolower((string) $option['type']) === 'excellent') {
+				return $option;
+			}
+		}
+
+		return $options[0] ?? null;
 	}
 
 	/**
-	 * Builds calculated Representative Example values from the stored inputs.
+	 * Calls the AFO calculate API for the Representative Example inputs.
+	 * Results are cached briefly to avoid hitting the API on every page view.
+	 *
+	 * @param float $cash_price Vehicle cash price.
+	 * @param float $deposit    Deposit amount.
+	 * @param int   $months     Term length in months.
+	 * @return array|null Finance option row, or null on failure.
+	 */
+	private function fetch_rep_finance_option($cash_price, $deposit, $months)
+	{
+		$api_key = get_option('afo_api_key', '091ecf3e-ad04-47d9-94b1-043539780f16');
+		$api_url = get_option('afo_api_url', 'https://www.autofinanceonline.co.uk/wp-json/finance/v1/calculate');
+
+		if (empty($api_key) || empty($api_url) || $months <= 0) {
+			return null;
+		}
+
+		$cache_key = 'afo_rep_' . md5(wp_json_encode([
+			$api_url,
+			(float) $cash_price,
+			(float) $deposit,
+			(int) $months,
+		]));
+
+		$cached = get_transient($cache_key);
+		if (is_array($cached) && isset($cached['monthly_cost'])) {
+			return $cached;
+		}
+
+		$request_url = add_query_arg(
+			[
+				'vehicle_price' => $cash_price,
+				'deposit'       => $deposit,
+				'term_length'   => $months,
+			],
+			$api_url
+		);
+
+		$response = wp_remote_get(
+			$request_url,
+			[
+				'timeout' => 12,
+				'headers' => [
+					'X-API-Key'    => $api_key,
+					'Content-Type' => 'application/json',
+				],
+			]
+		);
+
+		if (is_wp_error($response)) {
+			return null;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code($response);
+		$body = json_decode(wp_remote_retrieve_body($response), true);
+
+		if ($code < 200 || $code >= 300 || ! is_array($body)) {
+			return null;
+		}
+
+		$option = $this->pick_finance_option($body);
+		if (! $option) {
+			return null;
+		}
+
+		// Attach balance_to_finance when the API provides finance_parameters.
+		if (isset($body['data']['finance_parameters']['balance_to_finance'])) {
+			$option['balance_to_finance'] = $body['data']['finance_parameters']['balance_to_finance'];
+		}
+
+		set_transient($cache_key, $option, 15 * MINUTE_IN_SECONDS);
+
+		return $option;
+	}
+
+	/**
+	 * Builds Representative Example values from admin inputs + the AFO API.
+	 * Loan amount, monthly payment copy, total payable, APR, and interest
+	 * rate are derived from the API response (with local fallbacks).
 	 *
 	 * @return array{
 	 *     cash_price: string,
@@ -201,22 +284,46 @@ class AFO_Calculator
 		$cash_price_raw   = get_option('afo_rep_cash_price', '£15,000');
 		$deposit_raw      = get_option('afo_rep_deposit', '£0');
 		$term_raw         = get_option('afo_rep_term', '7 years');
-		$monthly_raw      = get_option('afo_rep_monthly', '£235.18');
 		$purchase_fee_raw = get_option('afo_rep_purchase_fee', '£1');
 
-		$cash_price   = $this->parse_money($cash_price_raw);
-		$deposit      = $this->parse_money($deposit_raw);
-		$term_years   = $this->parse_term_years($term_raw);
-		$months       = (int) round($term_years * 12);
-		$monthly      = $this->parse_monthly_amount($monthly_raw);
-		$purchase_fee = $this->parse_money($purchase_fee_raw);
+		$cash_price = $this->parse_money($cash_price_raw);
+		$deposit    = $this->parse_money($deposit_raw);
+		$term_years = $this->parse_term_years($term_raw);
+		$months     = (int) round($term_years * 12);
+		$credit     = max(0, $cash_price - $deposit);
 
-		$credit        = max(0, $cash_price - $deposit);
-		$total_payable = ($monthly * $months) + $purchase_fee + $deposit;
+		// Defaults used only if the API call fails.
+		$monthly       = 0.0;
+		$total_payable = 0.0;
+		$apr           = null;
 
-		$monthly_display = $months > 0
+		$option = $this->fetch_rep_finance_option($cash_price, $deposit, $months);
+		if (is_array($option)) {
+			if (isset($option['monthly_cost'])) {
+				$monthly = (float) $option['monthly_cost'];
+			}
+			if (isset($option['total_repayable'])) {
+				$total_payable = (float) $option['total_repayable'];
+			}
+			if (isset($option['apr'])) {
+				$apr = (float) $option['apr'];
+			}
+			if (isset($option['balance_to_finance'])) {
+				$credit = (float) $option['balance_to_finance'];
+			}
+		}
+
+		$monthly_display = ($months > 0 && $monthly > 0)
 			? sprintf('%d monthly payments of %s', $months, $this->format_money($monthly))
-			: $this->format_money($monthly);
+			: ($monthly > 0 ? $this->format_money($monthly) : '—');
+
+		$apr_display = $apr !== null
+			? rtrim(rtrim(number_format($apr, 2, '.', ''), '0'), '.') . '%'
+			: '—';
+
+		$interest_display = $apr !== null
+			? rtrim(rtrim(number_format($apr, 2, '.', ''), '0'), '.') . '% fixed'
+			: '—';
 
 		return [
 			'cash_price'    => is_string($cash_price_raw) && $cash_price_raw !== '' ? $cash_price_raw : $this->format_money($cash_price),
@@ -225,10 +332,10 @@ class AFO_Calculator
 			'term'          => is_string($term_raw) && $term_raw !== '' ? $term_raw : ($term_years . ' years'),
 			'monthly'       => $monthly_display,
 			'agreement'     => get_option('afo_rep_agreement', 'Hire purchase agreement'),
-			'purchase_fee'  => is_string($purchase_fee_raw) && $purchase_fee_raw !== '' ? $purchase_fee_raw : $this->format_money($purchase_fee),
-			'total_payable' => $this->format_money($total_payable),
-			'apr'           => get_option('afo_rep_apr', '8.5%'),
-			'interest'      => get_option('afo_rep_interest', '8.5% fixed'),
+			'purchase_fee'  => is_string($purchase_fee_raw) && $purchase_fee_raw !== '' ? $purchase_fee_raw : $this->format_money($this->parse_money($purchase_fee_raw)),
+			'total_payable' => $total_payable > 0 ? $this->format_money($total_payable) : '—',
+			'apr'           => $apr_display,
+			'interest'      => $interest_display,
 			'footer'        => get_option('afo_rep_footer', 'Rates may differ as they are dependent on individual circumstances. Subject to status.'),
 		];
 	}
@@ -450,14 +557,12 @@ class AFO_Calculator
 
 				<?php } elseif ($active_tab === 'rep') {
 					settings_fields('afo_rep_settings');
-
-					// Prefer a plain amount in the field; migrate legacy full phrases on display.
-					$monthly_option = get_option('afo_rep_monthly', '£235.18');
-					$monthly_field  = $this->format_money($this->parse_monthly_amount($monthly_option));
+					$rep_preview = $this->get_rep_example_values();
 				?>
 					<p class="description" style="margin-bottom:1rem;">
-						These fields populate the Representative Example table on the right panel.
-						Loan amount, payment count, and total amount payable are calculated automatically.
+						These fields define the Representative Example scenario.
+						Monthly payments, loan amount, total payable, APR, and interest rate
+						are calculated automatically from the AFO finance API using Cash Price, Deposit, and Finance Term.
 					</p>
 					<table class="form-table">
 						<tr>
@@ -465,7 +570,7 @@ class AFO_Calculator
 							<td><input type="text" name="afo_rep_cash_price"
 									value="<?php echo esc_attr(get_option('afo_rep_cash_price', '£15,000')); ?>"
 									class="regular-text" />
-								<p class="description">Vehicle cash price used in the example.</p>
+								<p class="description">Vehicle cash price sent to the AFO API as <code>vehicle_price</code>.</p>
 							</td>
 						</tr>
 						<tr>
@@ -473,7 +578,7 @@ class AFO_Calculator
 							<td><input type="text" name="afo_rep_deposit"
 									value="<?php echo esc_attr(get_option('afo_rep_deposit', '£0')); ?>"
 									class="regular-text" />
-								<p class="description">Loan amount is calculated as Cash Price − Deposit.</p>
+								<p class="description">Deposit sent to the AFO API. Loan amount comes from the API balance to finance.</p>
 							</td>
 						</tr>
 						<tr>
@@ -481,16 +586,7 @@ class AFO_Calculator
 							<td><input type="text" name="afo_rep_term"
 									value="<?php echo esc_attr(get_option('afo_rep_term', '7 years')); ?>"
 									class="regular-text" />
-								<p class="description">E.g. "7 years". Payment count is term × 12 months.</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">Monthly Payment</th>
-							<td>
-								<input type="text" name="afo_rep_monthly"
-									value="<?php echo esc_attr($monthly_field); ?>"
-									class="regular-text" />
-								<p class="description">Monthly instalment amount only (e.g. £235.18). Displayed as "84 monthly payments of £235.18".</p>
+								<p class="description">E.g. "7 years". Converted to months for the API <code>term_length</code>.</p>
 							</td>
 						</tr>
 						<tr>
@@ -503,20 +599,6 @@ class AFO_Calculator
 							<th scope="row">Option to Purchase Fee</th>
 							<td><input type="text" name="afo_rep_purchase_fee"
 									value="<?php echo esc_attr(get_option('afo_rep_purchase_fee', '£1')); ?>"
-									class="regular-text" />
-								<p class="description">Included when calculating Total Amount Payable.</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">Representative APR</th>
-							<td><input type="text" name="afo_rep_apr"
-									value="<?php echo esc_attr(get_option('afo_rep_apr', '8.5%')); ?>"
-									class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row">Rate of Interest</th>
-							<td><input type="text" name="afo_rep_interest"
-									value="<?php echo esc_attr(get_option('afo_rep_interest', '8.5% fixed')); ?>"
 									class="regular-text" /></td>
 						</tr>
 						<tr>
@@ -524,6 +606,31 @@ class AFO_Calculator
 							<td>
 								<textarea name="afo_rep_footer" class="large-text" rows="3"><?php echo esc_textarea(get_option('afo_rep_footer', 'Rates may differ as they are dependent on individual circumstances. Subject to status.')); ?></textarea>
 							</td>
+						</tr>
+					</table>
+
+					<h2 style="margin-top:2rem;">Calculated from AFO API</h2>
+					<p class="description">Read-only preview using the saved Cash Price, Deposit, and Finance Term above. Save changes first to refresh.</p>
+					<table class="form-table">
+						<tr>
+							<th scope="row">Loan Amount</th>
+							<td><code><?php echo esc_html($rep_preview['credit']); ?></code></td>
+						</tr>
+						<tr>
+							<th scope="row">Monthly Payments</th>
+							<td><code><?php echo esc_html($rep_preview['monthly']); ?></code></td>
+						</tr>
+						<tr>
+							<th scope="row">Total Amount Payable</th>
+							<td><code><?php echo esc_html($rep_preview['total_payable']); ?></code></td>
+						</tr>
+						<tr>
+							<th scope="row">Representative APR</th>
+							<td><code><?php echo esc_html($rep_preview['apr']); ?></code></td>
+						</tr>
+						<tr>
+							<th scope="row">Rate of Interest</th>
+							<td><code><?php echo esc_html($rep_preview['interest']); ?></code></td>
 						</tr>
 					</table>
 				<?php } ?>
@@ -543,8 +650,8 @@ class AFO_Calculator
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.2.0');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.2.0', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.3.0');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.3.0', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);
