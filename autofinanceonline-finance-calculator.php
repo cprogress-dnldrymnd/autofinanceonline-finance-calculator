@@ -4,7 +4,7 @@
  * Plugin Name: Auto Finance Online Custom Calculator
  * Plugin URI:  https://digitallydisruptive.co.uk/
  * Description: Custom API-driven finance calculator replicating the AFO embed with customizable parameters.
- * Version:     2.1.0
+ * Version:     2.2.0
  * Author:      Digitally Disruptive - Donald Raymundo
  * Author URI:  https://digitallydisruptive.co.uk/
  * Text Domain: afo-calculator
@@ -109,17 +109,128 @@ class AFO_Calculator
 		register_setting('afo_label_settings', 'afo_monthly_sublabel');
 
 		// ── Representative Example ────────────────────────────────────────────
+		// Credit, monthly payment copy, and total payable are derived at render time.
 		register_setting('afo_rep_settings', 'afo_rep_cash_price');
 		register_setting('afo_rep_settings', 'afo_rep_deposit');
-		register_setting('afo_rep_settings', 'afo_rep_credit');
 		register_setting('afo_rep_settings', 'afo_rep_term');
-		register_setting('afo_rep_settings', 'afo_rep_monthly');
+		register_setting('afo_rep_settings', 'afo_rep_monthly'); // monthly payment amount only
 		register_setting('afo_rep_settings', 'afo_rep_agreement');
 		register_setting('afo_rep_settings', 'afo_rep_purchase_fee');
-		register_setting('afo_rep_settings', 'afo_rep_total_payable');
 		register_setting('afo_rep_settings', 'afo_rep_apr');
 		register_setting('afo_rep_settings', 'afo_rep_interest');
 		register_setting('afo_rep_settings', 'afo_rep_footer');
+	}
+
+	/**
+	 * Parses a currency-like string (e.g. "£15,000" or "15000") into a float.
+	 *
+	 * @param mixed $value Raw option value.
+	 * @return float
+	 */
+	private function parse_money($value)
+	{
+		$cleaned = preg_replace('/[^0-9.]/', '', (string) $value);
+		return ($cleaned === '' || $cleaned === null) ? 0.0 : (float) $cleaned;
+	}
+
+	/**
+	 * Formats a numeric amount as a GBP display string.
+	 * Whole pounds omit decimals (e.g. £15,000); otherwise two decimal places.
+	 *
+	 * @param float $amount Amount in pounds.
+	 * @return string
+	 */
+	private function format_money($amount)
+	{
+		$amount = (float) $amount;
+		if (abs($amount - round($amount)) < 0.001) {
+			return '£' . number_format($amount, 0);
+		}
+		return '£' . number_format($amount, 2);
+	}
+
+	/**
+	 * Extracts the finance term in years from values like "7 years" or "7".
+	 *
+	 * @param mixed $value Raw option value.
+	 * @return float
+	 */
+	private function parse_term_years($value)
+	{
+		if (preg_match('/([\d.]+)/', (string) $value, $matches)) {
+			return (float) $matches[1];
+		}
+		return 0.0;
+	}
+
+	/**
+	 * Extracts the monthly payment amount from either a plain money string
+	 * ("£235.18") or a legacy full phrase ("84 monthly payments of £235.18").
+	 *
+	 * @param mixed $value Raw option value.
+	 * @return float
+	 */
+	private function parse_monthly_amount($value)
+	{
+		$value = (string) $value;
+		if (preg_match('/of\s*(£?[\d,.]+)/i', $value, $matches)) {
+			return $this->parse_money($matches[1]);
+		}
+		return $this->parse_money($value);
+	}
+
+	/**
+	 * Builds calculated Representative Example values from the stored inputs.
+	 *
+	 * @return array{
+	 *     cash_price: string,
+	 *     deposit: string,
+	 *     credit: string,
+	 *     term: string,
+	 *     monthly: string,
+	 *     agreement: string,
+	 *     purchase_fee: string,
+	 *     total_payable: string,
+	 *     apr: string,
+	 *     interest: string,
+	 *     footer: string
+	 * }
+	 */
+	private function get_rep_example_values()
+	{
+		$cash_price_raw   = get_option('afo_rep_cash_price', '£15,000');
+		$deposit_raw      = get_option('afo_rep_deposit', '£0');
+		$term_raw         = get_option('afo_rep_term', '7 years');
+		$monthly_raw      = get_option('afo_rep_monthly', '£235.18');
+		$purchase_fee_raw = get_option('afo_rep_purchase_fee', '£1');
+
+		$cash_price   = $this->parse_money($cash_price_raw);
+		$deposit      = $this->parse_money($deposit_raw);
+		$term_years   = $this->parse_term_years($term_raw);
+		$months       = (int) round($term_years * 12);
+		$monthly      = $this->parse_monthly_amount($monthly_raw);
+		$purchase_fee = $this->parse_money($purchase_fee_raw);
+
+		$credit        = max(0, $cash_price - $deposit);
+		$total_payable = ($monthly * $months) + $purchase_fee + $deposit;
+
+		$monthly_display = $months > 0
+			? sprintf('%d monthly payments of %s', $months, $this->format_money($monthly))
+			: $this->format_money($monthly);
+
+		return [
+			'cash_price'    => is_string($cash_price_raw) && $cash_price_raw !== '' ? $cash_price_raw : $this->format_money($cash_price),
+			'deposit'       => is_string($deposit_raw) && $deposit_raw !== '' ? $deposit_raw : $this->format_money($deposit),
+			'credit'        => $this->format_money($credit),
+			'term'          => is_string($term_raw) && $term_raw !== '' ? $term_raw : ($term_years . ' years'),
+			'monthly'       => $monthly_display,
+			'agreement'     => get_option('afo_rep_agreement', 'Hire purchase agreement'),
+			'purchase_fee'  => is_string($purchase_fee_raw) && $purchase_fee_raw !== '' ? $purchase_fee_raw : $this->format_money($purchase_fee),
+			'total_payable' => $this->format_money($total_payable),
+			'apr'           => get_option('afo_rep_apr', '8.5%'),
+			'interest'      => get_option('afo_rep_interest', '8.5% fixed'),
+			'footer'        => get_option('afo_rep_footer', 'Rates may differ as they are dependent on individual circumstances. Subject to status.'),
+		];
 	}
 
 	/**
@@ -339,42 +450,47 @@ class AFO_Calculator
 
 				<?php } elseif ($active_tab === 'rep') {
 					settings_fields('afo_rep_settings');
+
+					// Prefer a plain amount in the field; migrate legacy full phrases on display.
+					$monthly_option = get_option('afo_rep_monthly', '£235.18');
+					$monthly_field  = $this->format_money($this->parse_monthly_amount($monthly_option));
 				?>
 					<p class="description" style="margin-bottom:1rem;">
-						These static fields populate the Representative Example table shown on the right panel.
+						These fields populate the Representative Example table on the right panel.
+						Loan amount, payment count, and total amount payable are calculated automatically.
 					</p>
 					<table class="form-table">
 						<tr>
 							<th scope="row">Cash Price</th>
 							<td><input type="text" name="afo_rep_cash_price"
 									value="<?php echo esc_attr(get_option('afo_rep_cash_price', '£15,000')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">Vehicle cash price used in the example.</p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row">Deposit</th>
 							<td><input type="text" name="afo_rep_deposit"
 									value="<?php echo esc_attr(get_option('afo_rep_deposit', '£0')); ?>"
-									class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row">Total Amount of Credit</th>
-							<td><input type="text" name="afo_rep_credit"
-									value="<?php echo esc_attr(get_option('afo_rep_credit', '£15,000')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">Loan amount is calculated as Cash Price − Deposit.</p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row">Finance Term</th>
 							<td><input type="text" name="afo_rep_term"
 									value="<?php echo esc_attr(get_option('afo_rep_term', '7 years')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">E.g. "7 years". Payment count is term × 12 months.</p>
+							</td>
 						</tr>
 						<tr>
-							<th scope="row">Monthly Payments</th>
+							<th scope="row">Monthly Payment</th>
 							<td>
 								<input type="text" name="afo_rep_monthly"
-									value="<?php echo esc_attr(get_option('afo_rep_monthly', '84 monthly payments of £235.18')); ?>"
+									value="<?php echo esc_attr($monthly_field); ?>"
 									class="regular-text" />
-								<p class="description">E.g. "84 monthly payments of £235.18"</p>
+								<p class="description">Monthly instalment amount only (e.g. £235.18). Displayed as "84 monthly payments of £235.18".</p>
 							</td>
 						</tr>
 						<tr>
@@ -387,13 +503,9 @@ class AFO_Calculator
 							<th scope="row">Option to Purchase Fee</th>
 							<td><input type="text" name="afo_rep_purchase_fee"
 									value="<?php echo esc_attr(get_option('afo_rep_purchase_fee', '£1')); ?>"
-									class="regular-text" /></td>
-						</tr>
-						<tr>
-							<th scope="row">Total Amount Payable</th>
-							<td><input type="text" name="afo_rep_total_payable"
-									value="<?php echo esc_attr(get_option('afo_rep_total_payable', '£19,755.46')); ?>"
-									class="regular-text" /></td>
+									class="regular-text" />
+								<p class="description">Included when calculating Total Amount Payable.</p>
+							</td>
 						</tr>
 						<tr>
 							<th scope="row">Representative APR</th>
@@ -431,8 +543,8 @@ class AFO_Calculator
 	 */
 	public function enqueue_scripts()
 	{
-		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.1.0');
-		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.1.0', true);
+		wp_enqueue_style('afo-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', [], '2.2.0');
+		wp_enqueue_script('afo-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', [], '2.2.0', true);
 
 		// Attempt standard meta key, fallback to WooCommerce default
 		$raw_price = get_post_meta(get_the_ID(), 'price', true);
@@ -548,18 +660,19 @@ class AFO_Calculator
 		$btn_text          = get_option('afo_btn_text',          'Get a quote');
 		$monthly_sublabel  = get_option('afo_monthly_sublabel',  'per month*');
 
-		// ── Rep example settings ──────────────────────────────────────────────
-		$rep_cash_price   = get_option('afo_rep_cash_price',   '£15,000');
-		$rep_deposit      = get_option('afo_rep_deposit',      '£0');
-		$rep_credit       = get_option('afo_rep_credit',       '£15,000');
-		$rep_term         = get_option('afo_rep_term',         '7 years');
-		$rep_monthly      = get_option('afo_rep_monthly',      '84 monthly payments of £235.18');
-		$rep_agreement    = get_option('afo_rep_agreement',    'Hire purchase agreement');
-		$rep_purchase_fee = get_option('afo_rep_purchase_fee', '£1');
-		$rep_total_payable = get_option('afo_rep_total_payable', '£19,755.46');
-		$rep_apr          = get_option('afo_rep_apr',          '8.5%');
-		$rep_interest     = get_option('afo_rep_interest',     '8.5% fixed');
-		$rep_footer       = get_option('afo_rep_footer',       'Rates may differ as they are dependent on individual circumstances. Subject to status.');
+		// ── Rep example settings (credit / monthly copy / total payable calculated)
+		$rep              = $this->get_rep_example_values();
+		$rep_cash_price   = $rep['cash_price'];
+		$rep_deposit      = $rep['deposit'];
+		$rep_credit       = $rep['credit'];
+		$rep_term         = $rep['term'];
+		$rep_monthly      = $rep['monthly'];
+		$rep_agreement    = $rep['agreement'];
+		$rep_purchase_fee = $rep['purchase_fee'];
+		$rep_total_payable = $rep['total_payable'];
+		$rep_apr          = $rep['apr'];
+		$rep_interest     = $rep['interest'];
+		$rep_footer       = $rep['footer'];
 
 		ob_start();
 	?>
